@@ -4,7 +4,8 @@ function [] = main_hctsa_2_compute(hctsa_mat)
 % Inputs:
 %   hctsa_mat = string; initialised HCTSA .mat file
 
-hctsa_dir = 'hctsa_space_subtractMean_removeLineNoise/';
+data_server = '/fs03/fs11/Daisuke/tmpData/COSproject';
+hctsa_dir = fullfile(data_server,'hctsa_space_subtractMean_removeLineNoise/');
 
 nCores = feature('numcores');
 parpool(nCores);
