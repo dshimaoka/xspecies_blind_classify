@@ -3,7 +3,7 @@
 
 data_server = '/mnt/dshi0006_market/Massive/COSproject';
 hctsa_dir = fullfile(data_server,'hctsa_space_subtractMean_removeLineNoise/');
-hctsa_mat = 'HCTSA_train_ch10.mat';
+hctsa_mat = 'HCTSA_validate1_ch10.mat';
 
 nCores = feature('numcores');
 p = gcp('nocreate');

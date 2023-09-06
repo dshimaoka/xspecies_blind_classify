@@ -11,14 +11,15 @@ Exclusion is done per channel
 
 %% Settings
 
-file_prefix = 'HCTSA_train'; % HCTSA_train; HCTSA_validate1; HCTSA_validate2
+file_prefix = 'HCTSA_train_ch10'; % HCTSA_train; HCTSA_validate1; HCTSA_validate2
 file_suffix = '.mat';
 
 preprocess_string = '_subtractMean_removeLineNoise';
+data_server = '/mnt/dshi0006_market/Massive/COSproject';
 
-out_dir = ['hctsa_space' preprocess_string '/'];
+out_dir = fullfile(data_server, ['hctsa_space' preprocess_string '/']);
 
-nChannels = 15; % is there an easy way to get this programmatically instead?
+nChannels = 1; % is there an easy way to get this programmatically instead?
 
 %% Separate into channels
 
