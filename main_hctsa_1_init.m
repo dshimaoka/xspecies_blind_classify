@@ -4,6 +4,7 @@
 
 Extract time series features from fly data using hctsa
 
+Run this after preprocess.m
 %}
 
 %% Settings
@@ -28,13 +29,15 @@ for ch = 1 : dims(2)
     for tr = 1 : dims(3)
         for f = 1 : dims(4)
             for c = 1 : dims(5)
-                train_ids{ch, tr, f, c} = ['macaque' num2str(f) ',channel' num2str(ch) ',epoch' num2str(tr) ',condition' num2str(c)];
+                train_ids{ch, tr, f, c} = ['subject' num2str() ',channel' num2str(ch) ',epoch' num2str(tr) ',conscious' num2str(c)...
+                    ',eyeopen' num2str()  ',anesthetic' num2str() ',ndosage' num2str() ',region' num2str() ',sex' num2str() ];
             end
         end
     end
 end
+
 % Reformat to (series x time)
-train_set = permute(train_set, [2 3 4 5 1]); % channels x trials x flies x conditions x time
+train_set = permute(train_set, [2 3 4 5 1]); % channels x trials x subjects x conditions x time
 train_set = reshape(train_set, [prod(dims(2:end)) dims(1)]); % Collapse all dimensions other than time
 train_ids = reshape(train_ids, [prod(dims(2:end)) 1]); % Collapse labels also
 % Create hctsa matrix

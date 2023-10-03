@@ -1,4 +1,5 @@
-function [performances, performances_random, sig, ps, ps_fdr, sig_thresh, sig_thresh_fdr] = get_sig_features(perf_type, data_set, ch_valid_features, preprocess_string)
+function [performances, performances_random, sig, ps, ps_fdr, sig_thresh, sig_thresh_fdr] = ...
+    get_sig_features(perf_type, data_set, ch_valid_features, preprocess_string)
 % Get features which perform significantly better than chance
 % Conducts FDR correction for multiple corrections, on valid features
 %

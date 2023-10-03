@@ -1,28 +1,24 @@
 %run this file after main_hctsa_1_init.m
 
-suffix = 'validate1';
+suffix = 'validate1'; %
 saveDir = '/mnt/dshi0006_market/Massive/COSproject/hctsa_space_subtractMean_removeLineNoise/';
-load(fullfile(saveDir,['HCTSA_' suffix '.mat']));
 
 nTotCh = 128;
-thisCh = 10;
-idx = thisCh:128:size(TS_DataMat,1);
-saveName = sprintf('HCTSA_%s_ch%d.mat',suffix,thisCh);
+thisMacaque = 2;
+load('selectedCh_20230909','selectedCh');
 
-TimeSeries = TimeSeries(idx,:);
-TS_CalcTime = TS_CalcTime(idx,:);
-TS_DataMat = TS_DataMat(idx,:);
-TS_Quality = TS_Quality(idx,:);
+for ich = 15:numel(selectedCh)
+    thisCh = selectedCh(ich);
+    load(fullfile(saveDir,['HCTSA_' suffix '.mat']));
 
-save(fullfile(saveDir,saveName),'TS_Quality','TS_DataMat','TS_CalcTime','TimeSeries',...
-    'MasterOperations','Operations',"fromDatabase",'gitInfo');
+    idx = thisCh:128:size(TS_DataMat,1);
+    saveName = sprintf('HCTSA_%s_ch%d.mat',suffix,thisCh);
 
-% idx_sub = 1:3;
-% TimeSeries = TimeSeries(idx_sub,:);
-% TS_CalcTime = TS_CalcTime(idx_sub,:);
-% TS_DataMat = TS_DataMat(idx_sub,:);
-% TS_Quality = TS_Quality(idx_sub,:);
-% saveName_sub = sprintf('HCTSA_train_ch%d_sub.mat',thisCh);
-% 
-% save(fullfile(saveDir,saveName_sub),'TS_Quality','TS_DataMat','TS_CalcTime','TimeSeries',...
-%     'MasterOperations','Operations',"fromDatabase",'gitInfo');
+    TimeSeries = TimeSeries(idx,:);
+    TS_CalcTime = TS_CalcTime(idx,:);
+    TS_DataMat = TS_DataMat(idx,:);
+    TS_Quality = TS_Quality(idx,:);
+
+    save(fullfile(saveDir,saveName),'TS_Quality','TS_DataMat','TS_CalcTime','TimeSeries',...
+        'MasterOperations','Operations',"fromDatabase",'gitInfo');
+end

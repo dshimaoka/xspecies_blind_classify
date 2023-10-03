@@ -3,7 +3,12 @@
 %{
 
 Conduct nearest mean classification on HCTSA features
-
+cross validation procedure:
+- Leave out one animal for testing
+- Get means for each class (awake anesth)
+save following par animal, ch and ross-val partition:
+  threshold, direction, accuracy, prediction
+       
 %}
 
 %% Settings
@@ -12,12 +17,12 @@ Conduct nearest mean classification on HCTSA features
 class_type = 'nearestMedian'; % nearest median classification
 
 source_prefix = 'HCTSA_train';
-
+data_server = '/mnt/dshi0006_market/Massive/COSproject';
 preprocess_string = '_subtractMean_removeLineNoise';
 
-out_dir = ['results' preprocess_string '/'];
+out_dir = fullfile(data_server,['results' preprocess_string ]);
 out_file = ['class_' class_type '_crossValidation'];
-source_dir = ['../hctsa_space' preprocess_string '/'];
+source_dir = fullfile(data_server, ['hctsa_space' preprocess_string]);
 
 addpath('../');
 here = pwd;
@@ -26,13 +31,15 @@ cd('../'); add_toolbox; cd(here);
 %% Load
 
 % Get dimensions
-tic;
-tmp = load('../data/preprocessed/fly_data_removeLineNoise.mat');
-nChannels = size(tmp.data.train, 2);
-nEpochs = size(tmp.data.train, 3);
-nFlies = size(tmp.data.train, 4);
-nConditions = size(tmp.data.train, 5);
-toc
+tmp = load(fullfile(source_dir, [source_prefix]));
+ [nChannels, nMacaques, nConditions, nEpochs] = getDimensions(tmp.TimeSeries);
+% tic;
+% tmp = load('../data/preprocessed/fly_data_removeLineNoise.mat');
+% nChannels = size(tmp.data.train, 2);
+% nEpochs = size(tmp.data.train, 3);
+% nMacaques = size(tmp.data.train, 4);
+% nConditions = size(tmp.data.train, 5);
+% toc
 
 tic;
 tmp = load([source_dir source_prefix '_channel' num2str(1) '.mat']);
@@ -46,19 +53,20 @@ toc
 %   Note - number of valid features can vary across channels
 % Need to store - thresholds, directions, predictions, accuracy
 
-thresholds = NaN(nChannels, nFeatures, nFlies);
-directions = NaN(nChannels, nFeatures, nFlies);
-predictions = NaN(nChannels, nFeatures, nFlies, nConditions, nEpochs);
-accuracies = NaN(nChannels, nFeatures, nFlies);
+thresholds = NaN(nChannels, nFeatures, nMacaques);
+directions = NaN(nChannels, nFeatures, nMacaques);
+predictions = NaN(nChannels, nFeatures, nMacaques, nConditions, nEpochs);
+accuracies = NaN(nChannels, nFeatures, nMacaques);
 
 nCores = feature('numcores');
 parpool(nCores);
 
-parfor ch = 1 : nChannels
+parfor ch = theseChannels%1 : nChannels
     
     % Load HCTSA values for channel
-    hctsa = load([source_dir source_prefix '_channel' num2str(ch) '.mat']);
-    
+    %hctsa = load([source_dir source_prefix '_channel' num2str(ch) '.mat']);
+        hctsa = load([source_dir source_prefix '_ch' num2str(ch) '.mat']);
+
     % Get valid features
     %valid_features = getValidFeatures(hctsa.TS_DataMat);
     valid_features = ones(1, size(hctsa.TS_DataMat, 2)); % do for all features
@@ -73,18 +81,18 @@ parfor ch = 1 : nChannels
     class2 = ~class1;
     classes = {class1, class2};
     
-    ch_thresholds = NaN(nFeatures, nFlies);
-    ch_directions = NaN(nFeatures, nFlies);
-    ch_predictions = NaN(nFeatures, nFlies, nConditions, nEpochs);
-    ch_accuracies = NaN(nFeatures, nFlies);
+    ch_thresholds = NaN(nFeatures, nMacaques);
+    ch_directions = NaN(nFeatures, nMacaques);
+    ch_predictions = NaN(nFeatures, nMacaques, nConditions, nEpochs);
+    ch_accuracies = NaN(nFeatures, nMacaques);
     
     % For each feature, conduct cross-validation
     for f = feature_ids
         tic;
         disp(f);
-        for cv = 1 : nFlies
+        for cv = 1 : nMacaques
             
-            % Leave out one fly for testing
+            % Leave out one animal for testing
             test_set = getIds({['fly' num2str(cv)]}, hctsa.TimeSeries);
             train_set = ~test_set;
             

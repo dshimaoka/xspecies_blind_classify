@@ -2,17 +2,21 @@
 
 %{
 
+% Get valid feature w getValidFeatures (instant)
+% Normalize hctsa result w BF_NormalizeMatrix (instant)
+% Reorder features w clusterFeatures (takes a minute)
 % Plot feature matrix for given dataset
 
+% run this after main_hctsa_3(_perChannel)
 %}
 
 %% Settings
-
+data_server = '/mnt/dshi0006_market/Massive/COSproject';
 preprocess_string = '_subtractMean_removeLineNoise';
-source_prefix = 'train_ch10';
+source_prefix = 'train_ch47';
 
 source_dir = fullfile(data_server,['hctsa_space' preprocess_string '/']);
-source_file = ['HCTSA_' source_prefix '_channel1.mat']; % HCTSA_train.mat; HCTSA_validate1.mat;
+source_file = ['HCTSA_' source_prefix '.mat']; % HCTSA_train.mat; HCTSA_validate1.mat;
 
 %% Load
 
@@ -25,12 +29,11 @@ toc
 
 % Note - even with mixedSigmoid, feature 976 (870th valid feature) scales
 %   to NaNs and 0s
-hctsa.TS_Normalised = BF_NormalizeMatrix(hctsa.TS_DataMat, 'mixedSigmoid');
-
-%% Visualise
+TS_Normalised = BF_NormalizeMatrix(hctsa.TS_DataMat, 'mixedSigmoid');
+hctsa.TS_Normalised = TS_Normalised;
 
 % Which set of time series to visualise for
-keywords = {'macaque1'};
+%keywords = {'macaque1'};
 keywords = {}; % everything
 
 % Get corresponding rows
@@ -40,6 +43,10 @@ match = getIds(keywords, hctsa.TimeSeries);
 valid_features = true(size(hctsa.TS_DataMat, 2), 1); % everything
 valid_features = getValidFeatures(hctsa.TS_DataMat);
 
+save([source_dir source_file], 'valid_features','TS_Normalised','-append');
+
+
+%% sorting (takes time)
 valid_cols = hctsa.TS_DataMat(find(match), find(valid_features));
 
 % Sort features by similarity across time series
@@ -57,6 +64,8 @@ toc
 tic;
 vis_rows = hctsa.TS_Normalised(:, valid_features);
 toc
+
+
 
 %% figure before sorting
 figure;

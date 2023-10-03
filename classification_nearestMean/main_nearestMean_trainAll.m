@@ -3,6 +3,10 @@
 %{
 
 Produce nearest mean classifier using all training data
+by saving threshold and direction of every channels and features
+using cross validation (leave one animal out)
+
+%run this after main_hctsa_matrix.m
 
 %}
 
@@ -11,33 +15,33 @@ Produce nearest mean classifier using all training data
 %class_type = 'nearestMean'; % nearest mean classification
 class_type = 'nearestMedian'; % nearest median classification
 
-source_prefix = 'HCTSA_train';
-
+source_prefix = 'HCTSA_train_ch10';
+data_server = '/mnt/dshi0006_market/Massive/COSproject';
 preprocess_string = '_subtractMean_removeLineNoise';
 
-out_dir = ['results' preprocess_string '/'];
-out_file = ['class_' class_type '_thresholds'];
-source_dir = ['../hctsa_space' preprocess_string '/'];
+out_dir = fullfile(data_server, ['results' preprocess_string]);
+mkdir(out_dir);
 
-addpath('../');
-here = pwd;
-cd('../'); add_toolbox; cd(here);
+out_file = ['class_' class_type '_thresholds'];
+source_dir = fullfile(data_server, ['hctsa_space' preprocess_string]);
+
+%addpath('../');
+%here = pwd;
+%cd('../'); add_toolbox; cd(here);
 
 %% Load
 
 % Get dimensions
-tic;
-tmp = load('../data/preprocessed/fly_data_removeLineNoise.mat');
-nChannels = size(tmp.data.train, 2);
-nEpochs = size(tmp.data.train, 3);
-nFlies = size(tmp.data.train, 4);
-nConditions = size(tmp.data.train, 5);
-toc
+tmp = load(fullfile(source_dir, [source_prefix]));
+ [nChannels, nMacaques, nConditions, nEpochs] = getDimensions(tmp.TimeSeries);
+ %tmp = load('../data/preprocessed/fly_data_removeLineNoise.mat');
+%nChannels = size(tmp.data.train, 2);
+%nEpochs = size(tmp.data.train, 3);
+%nFlies = size(tmp.data.train, 4);
+%nConditions = size(tmp.data.train, 5);
 
-tic;
-tmp = load([source_dir source_prefix '_channel' num2str(1) '.mat']);
+%tmp = load([source_dir source_prefix '_channel' num2str(1) '.mat']);
 nFeatures = size(tmp.TS_DataMat, 2);
-toc
 
 %% Create classifier at each channel
 
@@ -52,8 +56,9 @@ directions = NaN(nChannels, nFeatures);
 for ch = 1 : nChannels
     
     % Load HCTSA values for channel
-    hctsa = load([source_dir source_prefix '_channel' num2str(ch) '.mat']);
-    
+    % hctsa = load([source_dir source_prefix '_channel' num2str(ch) '.mat']);
+    hctsa = load(fullfile(source_dir, [source_prefix '.mat']));
+ 
     % Get valid features
     %valid_features = getValidFeatures(hctsa.TS_DataMat);
     valid_features = ones(1, size(hctsa.TS_DataMat, 2)); % do for all features
@@ -101,5 +106,5 @@ end
 %% Save
 
 tic;
-save([out_dir out_file], 'thresholds', 'directions');
+save(fullfile(out_dir, out_file), 'thresholds', 'directions');
 toc

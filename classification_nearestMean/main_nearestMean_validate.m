@@ -4,6 +4,8 @@
 
 Apply thresholds obtained from test dataset to validation dataset(s)
 
+run this after main_nearestMean_trainAll
+
 %}
 
 %% Settings
