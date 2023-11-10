@@ -1,3 +1,4 @@
+thisCh = 48;
 
 
 for istate = 1:2
@@ -19,19 +20,20 @@ for istate = 1:2
     theseTimes = FIDX.time;%(theseTrials);
     eventLabels = FIDX.evnt;
 
-    %thisCh = 1;
-    %dataName = sprintf('LFPx_RZ2_chn%03d',thisCh)
-    time_ori = LFPx_RZ2_chn048.t;
-    fs = LFPx_RZ2_chn048.fs;
-    data = LFPx_RZ2_chn048.dat;
+    dataName = sprintf('LFPx_RZ2_chn%03d',thisCh);
+    
+    channelStruct = eval(dataName);
+
+    time_ori = channelStruct.t;
+    dat = channelStruct.dat;
 
     %t = linspace(time_ori(1), time_ori(end), numel(data)); %wild guess! ... NG
-    t = time_ori(1):1e-3:time_ori(1)+1e-3*(numel(data)-1);
+    t = time_ori(1):1e-3:time_ori(1)+1e-3*(numel(dat)-1);
 
     calcWin = [0 1.4]; %[s]
     doMedian = 0;
     [avgPeriEventV, winSamps, periEventV, sortedLabels, uniqueLabels] ...
-        = eventLockedAvg(data', t, theseTimes, eventLabels, calcWin, doMedian);
+        = eventLockedAvg(dat', t, theseTimes, eventLabels, calcWin, doMedian);
     %plot(winSamps, squeeze(avgPeriEventV));
 
     silence = squeeze(periEventV(sortedLabels==7,:));

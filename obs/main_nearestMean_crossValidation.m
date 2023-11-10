@@ -11,6 +11,14 @@ save following par animal, ch and ross-val partition:
        
 %}
 
+%INPUT
+hctsa data for training
+hctsa data for validation
+
+%OUTPUT
+  threshold, direction, accuracy, prediction
+
+
 %% Settings
 
 %class_type = 'nearestMean'; % nearest mean classification

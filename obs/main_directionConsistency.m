@@ -89,7 +89,7 @@ for ch = 1 : nChannels
                 values{class} = hctsa.TS_DataMat(rows{class}, f);
             end
             
-            % Get direction of effect
+            % Get direction of effect (from training data???)
             direction = directions(ch, f);
             
             % Flip epoch values to always test class1 > class2
