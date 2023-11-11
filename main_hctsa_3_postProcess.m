@@ -15,8 +15,8 @@ main_hctsa_matrix
 %% Settings
 addDirPrefs_COS;
 dirPref = getpref('cosProject','dirPref');
-species = 'human';
-subject = '376';
+species = 'macaque';%'human';
+subject = 'George';%'376';
 preprocessSuffix = '_subtractMean_removeLineNoise';
 load_dir = fullfile(dirPref.rootDir, 'preprocessed',species,subject);
 save_dir = fullfile(dirPref.rootDir, ['hctsa' preprocessSuffix],species,subject);

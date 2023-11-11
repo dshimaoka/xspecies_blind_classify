@@ -1,6 +1,13 @@
 function classifier_result =  NMclassifier_cv(trainData, validateData, trainFraction, ncv, condNames) 
 % classifier_result =  NMclassifier_cv(trainData, validateData, trainFraction, ncv, labelToClassify) 
 
+%INPUT
+%trainData/validateData
+% .Operations
+% .TS_DataMat
+% .TimeSeries
+% .TS_Normalised
+
 %OUTPUT: classifier_result:
 % .threshold
 % .direction

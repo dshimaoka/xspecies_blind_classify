@@ -3,8 +3,8 @@
 %% Settings
 addDirPrefs_COS;
 dirPref = getpref('cosProject','dirPref');
-species = 'human';
-subject = '376';
+species = 'macaque';%'human';
+subject = 'George';%'376';
 preprocessSuffix = '_subtractMean_removeLineNoise';
 channel_dir = fullfile(dirPref.rootDir, 'preprocessed',species,subject);
 load_dir = fullfile(dirPref.rootDir, ['results' preprocessSuffix]);
@@ -66,8 +66,8 @@ for im = 1:4
     title(sprintf('%s\np=%3f',thisMetric,p));
 end
 squareplots(f1);
-screen2png('resultMatrix',f1);
-screen2png('resultMatrix_violin',f2);
+screen2png(['resultMatrix_' species '_'  subject],f1);
+screen2png(['resultMatrix_violin_' species '_' subject] ,f2);
 %best accuracy - did not depend on training channel - dubious
 %best consistency & nsig consistent - did depend on training channel -dubious
 %nsig accuracy & nsig consistent - values too high

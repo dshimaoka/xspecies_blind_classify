@@ -10,6 +10,7 @@ switch getenv('COMPUTERNAME')
         dirPref.rootDir = '/mnt/dshi0006_market/Massive/COSproject/';
 
     case '' %MASSIVE
+        dirPref.rootDir = '/fs03/fs11/Daisuke/COSproject/';
 end
 addpref(groupName,'dirPref',dirPref);
 
