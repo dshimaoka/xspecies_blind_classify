@@ -6,7 +6,7 @@
 % created from awake_unconscious_human_stats.m
 
 if isempty(getenv('COMPUTERNAME'))
-    [~,narrays] = getArray('script_wrapper.sh');
+    [~,narrays] = getArray('script_NMclassification.sh');
 else
     narrays = 1;
 end
