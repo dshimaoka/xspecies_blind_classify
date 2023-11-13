@@ -1,4 +1,4 @@
-function classifier_result =  NMclassifier_cv(trainData, validateData, trainFraction, ncv, condNames) 
+function [classifier_result, fig] =  NMclassifier_cv(trainData, validateData, ncv, condNames) 
 % classifier_result =  NMclassifier_cv(trainData, validateData, trainFraction, ncv, labelToClassify) 
 
 %INPUT
@@ -21,13 +21,13 @@ visualize = false;
 assert(isequal(trainData.Operations, validateData.Operations));
 
 %created from NMclassifier_cv_test
-if nargin < 3 || isempty(trainFraction)
-    trainFraction = 0.8; %[0-1]
+% if nargin < 3 || isempty(trainFraction)
+%     trainFraction = 0.8; %[0-1]
+% end
+if nargin < 3 || isempty(ncv)
+    ncv=10; 
 end
-if nargin < 4 || isempty(ncv)
-    ncv=50;
-end
-if nargin < 5
+if nargin < 4
     condNames = {'awake','unconscious'};
 end
 
@@ -38,20 +38,26 @@ validFeatures = logical(getValidFeatures(trainData.TS_DataMat).* getValidFeature
 
 %% compute classification accuracy w cross validation (within a channel)
 classifier_result.operations = trainData.Operations;
-classifier_result.trainFraction = trainFraction;
+%classifier_result.trainFraction = trainFraction;
 classifier_result.validFeatures = validFeatures;
 
-nEpochs = size(trainData.TimeSeries,1);
-nTrainEpochs = round(nEpochs*trainFraction);
+parcelledEpochs_train = parcellateEpochs(trainData, condNames, ncv);
+if isequal(trainData.TimeSeries, validateData.TimeSeries)
+    parcelledEpochs_validate = parcelledEpochs_train;
+else
+    parcelledEpochs_validate = parcellateEpochs(validateData, condNames, ncv);
+end
+
 parfor icv = 1:ncv
 
     if verbose
         disp([num2str(icv) '/' num2str(ncv)]);
     end
 
-    rndEpochs = randperm(nEpochs);
-    trainEpochs = rndEpochs(1:nTrainEpochs);
-    validateEpochs= rndEpochs(nTrainEpochs+1:end);
+    trainParcelIdx = setxor(1:ncv, icv);
+    validateParcelIdx = icv;
+    trainEpochs = [parcelledEpochs_train{trainParcelIdx}];
+    validateEpochs = [parcelledEpochs_validate{validateParcelIdx}];
 
     data_c = trainData.TS_Normalised;
     timeSeries_c = trainData.TimeSeries;
@@ -81,23 +87,20 @@ classifier_result.accuracy_validate_rand = accuracy_validate_rand;
 maccuracy_train = mean(accuracy_train,2);
 maccuracy_validate = mean(accuracy_validate,2);
 
-if visualize
-figure;
-        %ax(jj,ii) = subplot(numel(channels),numel(channels),ii+numel(channels)*(jj-1));
-        plot(maccuracy_train(validFeatures), maccuracy_validate(validFeatures),'.');
-        % hold on
-        % plot(maccuracy_train(bestFlyFeature(1), jj,ii), maccuracy_validate(bestFlyFeature(1), jj,ii), 'ro');
-        % plot(maccuracy_train(bestFlyFeature(2), jj,ii), maccuracy_validate(bestFlyFeature(2), jj,ii), 'go');
-
-        axis equal padded;
-        xlim([.5 1]);
-        ylim([0 1]);
-        line([.5 1],[.5 1],'color','k');
-        set(gca,'tickdir','out');
-
-        xlabel('discovery data');
-        ylabel('validate data');
-        saveas(gcf,'NMclassifier_cv_test.png');
+if nargout==2
+    fig = figure;
+    show_NMclassifier_single(classifier_result);%, [], p_accuracy, p_fdr_accuracy_th);
+        
+        % plot(maccuracy_train(validFeatures), maccuracy_validate(validFeatures),'.');
+        % axis equal padded;
+        % xlim([.5 1]);
+        % ylim([0 1]);
+        % line([.5 1],[.5 1],'color','k');
+        % set(gca,'tickdir','out');
+        % 
+        % xlabel('discovery data');
+        % ylabel('validate data');
+        % saveas(gcf,'NMclassifier_cv_test.png');
 end
 
 

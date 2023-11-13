@@ -12,7 +12,7 @@ if isempty(getenv('COMPUTERNAME'))
     rm_dir = {'/home/dshi0006/git/xspecies_blind_classify/obs'};
 
 elseif strcmp(getenv('COMPUTERNAME'), 'MU00011697')
-    add_dir = {'~/Documents/git/xspecies_blind_classify','~/Documents/git/hctsa'};
+    add_dir = {'~/Documents/git/xspecies_blind_classify','~/Documents/git/hctsa', '~/Documents/git/dsbox'};
     rm_dir = {'/home/daisuke/Documents/git/xspecies_blind_classify/obs'};
 
     %for TISEAN
@@ -21,6 +21,8 @@ elseif strcmp(getenv('COMPUTERNAME'), 'MU00011697')
     setenv('PATH',result);
 
     cd('/home/daisuke/Documents/git/xspecies_blind_classify/');
+    
+    restoredefaultpath;
 
 elseif strcmp(getenv('COMPUTERNAME'), 'MU00175834')
     add_dir = {'C:\Users\dshi0006\git\xspecies_blind_classify'; 'C:\Users\dshi0006\git\hctsa'};
@@ -35,7 +37,6 @@ end
 
 % currentpath = path;
 % save('currentpath','currentpath');
-restoredefaultpath;
 for idir = 1:numel(add_dir)
     addpath(genpath(add_dir{idir}));
 end
