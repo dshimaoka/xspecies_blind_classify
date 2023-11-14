@@ -6,10 +6,10 @@ function ngIdx = detectNGidx_NMclassification(save_dir, species_train, subject_t
 %hctsa_dir_train = fullfile(rootDir, ['hctsa' preprocessSuffix],species_train,subject_train);
 %hctsa_dir_validate = fullfile(rootDir, ['hctsa' preprocessSuffix],species_validate,subject_validate);
 
-tgtIdx = 1:numel(tgtChannels_train)*numel(tgtChannels_validate);
+%tgtIdx = 1:numel(tgtChannels_train)*numel(tgtChannels_validate);
 
 ngIdx = [];
-for thisChIdx = 1:numel(tgtIdx)
+for thisChIdx = 1:numel(tgtChannels_train)*numel(tgtChannels_validate)
 
     [ii,jj] = ind2sub([numel(tgtChannels_train) numel(tgtChannels_validate)],  thisChIdx);
 

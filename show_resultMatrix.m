@@ -7,8 +7,8 @@ preprocessSuffix = '_subtractMean_removeLineNoise';
 
 species_train = 'human';
 subject_train = '376';
-species_validate = 'macaque';%'human';
-subject_validate = 'George';%'376';
+species_validate = 'human';
+subject_validate = '376';
 
 channel_dir_train = fullfile(dirPref.rootDir, 'preprocessed',species_train, subject_train);
 load(fullfile(channel_dir_train,['detectChannels_' subject_train]) , 'tgtChannels','channelsByLobe','lobeNames');

@@ -22,8 +22,8 @@ dirPref = getpref('cosProject','dirPref');
 preprocessSuffix = '_subtractMean_removeLineNoise';
 doTrain = true;%false;
 ncv = 10;
-species_train = 'macaque';
-subject_train = 'George';
+species_train = 'macaque';%'human';
+subject_train = 'George';%'376';
 species_validate = 'macaque';%
 subject_validate = 'George';%
 
@@ -44,9 +44,9 @@ load(fullfile(load_dir_validate,['detectChannels_' subject_validate]) ,'tgtChann
 tgtChannels_validate = tgtChannels;
 clear  tgtChannels;
 
-tgtIdx  = 1:numel(tgtChannels_train)*numel(tgtChannels_validate);
-% tgtIdx = detectNGidx_NMclassification(save_dir, species_train, subject_train, tgtChannels_train, ...
-%      species_validate, subject_validate, tgtChannels_validate);
+% tgtIdx  = 1:numel(tgtChannels_train)*numel(tgtChannels_validate);
+tgtIdx = detectNGidx_NMclassification(save_dir, species_train, subject_train, tgtChannels_train, ...
+      species_validate, subject_validate, tgtChannels_validate);
 
 maxJID = numel(pen:narrays:numel(tgtIdx));
 

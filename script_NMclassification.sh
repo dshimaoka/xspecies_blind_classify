@@ -4,10 +4,10 @@
 #SBATCH --mail-type=END
 #SBATCH --mail-user=daisuke.shimaoka@monash.edu
 #SBATCH --job-name=Wrapper
-#SBATCH --time=4:00:00
+#SBATCH --time=2:00:00
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
+#SBATCH --cpus-per-task=2
 #SBATCH --mem-per-cpu=80000
-#SBATCH --array=1-5
+#SBATCH --array=1-20
 module load matlab/r2021a
 matlab -nodisplay -nodesktop -nosplash < awake_unconscious_NMclassification_channels_remote.m
