@@ -8,6 +8,8 @@
 
 if isempty(getenv('COMPUTERNAME'))
     [~,narrays] = getArray('script_NMclassification.sh');
+    % DON'T ADD PREFS in a batch job
+   % addDirPrefs_COS;
 else
     narrays = 1;
 end
@@ -17,7 +19,6 @@ pen = getPen;
 
 %% Settings
 add_toolbox_COS;
-addDirPrefs_COS;
 dirPref = getpref('cosProject','dirPref');
 preprocessSuffix = '_subtractMean_removeLineNoise';
 doTrain = true;%false;
