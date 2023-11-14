@@ -8,7 +8,7 @@ Add hctsa toolbox (and anything else, for MASSIVE)
 %}
 
 if isempty(getenv('COMPUTERNAME'))
-    add_dir = {'/home/dshi0006/git/xspecies_blind_classify', '/home/dshi0006/git/hctsa'};
+    add_dir = {'/home/dshi0006/git/xspecies_blind_classify', '/home/dshi0006/git/hctsa', '/home/dshi0006/git/dsbox'};
     rm_dir = {'/home/dshi0006/git/xspecies_blind_classify/obs'};
 
 elseif strcmp(getenv('COMPUTERNAME'), 'MU00011697')
