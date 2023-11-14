@@ -8,6 +8,7 @@
 
 if isempty(getenv('COMPUTERNAME'))
     [~,narrays] = getArray('script_NMclassification.sh');
+%addDirPrefs_COS;  DO NOT ADD THIS IN A BATCH JOB
 else
     narrays = 1;
 end
@@ -17,13 +18,12 @@ pen = getPen;
 
 %% Settings
 add_toolbox_COS;
-addDirPrefs_COS;
 dirPref = getpref('cosProject','dirPref');
 preprocessSuffix = '_subtractMean_removeLineNoise';
 doTrain = true;%false;
 ncv = 10;
-species_train = 'human';%'macaque';
-subject_train = '376';%'George';
+species_train = 'macaque';
+subject_train = 'George';
 species_validate = 'macaque';%
 subject_validate = 'George';%
 

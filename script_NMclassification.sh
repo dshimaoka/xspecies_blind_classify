@@ -10,4 +10,4 @@
 #SBATCH --mem-per-cpu=80000
 #SBATCH --array=1-20
 module load matlab/r2021a
-matlab -nodisplay -nodesktop -nosplash < awake_unconscious_NMclassification_channels_remote.m
+matlab -nodisplay -nodesktop -nosplash < awake_unconscious_NMclassification_channels.m
