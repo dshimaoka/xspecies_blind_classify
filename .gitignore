@@ -8,6 +8,7 @@
 
 # Figures
 **/figures*
+**/*.png
 
 # Windows
 **/*.db

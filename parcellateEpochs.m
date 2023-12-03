@@ -11,6 +11,8 @@ function dividedEpochs = parcellateEpochs(Data, condNames, ncv, equalEpochsBetCo
 % .Operations
 % .TS_DataMat
 % .TimeSeries
+%
+%TODO: refactor based on https://au.mathworks.com/help/stats/cvpartition.html
 
 if nargin<4
     equalEpochsBetConds= true;
