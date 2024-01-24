@@ -1,4 +1,4 @@
-function [classifier_result] =  SVMclassifier_cv(trainData, validateData, ncv, condNames) 
+function [classifier_result] =  SVMclassifier_cv(trainData, validateData, ncv, condNames, regularization) 
 % classifier_result =  NMclassifier_cv(trainData, validateData, trainFraction, ncv, labelToClassify) 
 % 
 % train classifier using fitclinear for each cross-validation partitions
@@ -18,6 +18,7 @@ function [classifier_result] =  SVMclassifier_cv(trainData, validateData, ncv, c
 % .accuracy_validate
 % .accuracy_validate_rand
 
+
 verbose = false;
 
 assert(isequal(trainData.Operations, validateData.Operations));
@@ -29,8 +30,13 @@ assert(isequal(trainData.Operations, validateData.Operations));
 if nargin < 3 || isempty(ncv)
     ncv=10; 
 end
-if nargin < 4
+if nargin < 4 || isempty(condNames)
     condNames = {'awake','unconscious'};
+end
+if nargin < 5
+    classifier_result.regularization = 'ridge';
+else
+    classifier_result.regularization = regularization;
 end
 
 %% define valid features, common across channels
@@ -63,7 +69,7 @@ for icv = 1:ncv
 
     X_train= trainData.TS_Normalised(trainEpochs,validFeatures)';
     Y_train = contains(trainData.TimeSeries(trainEpochs,:).Name, condNames{1})';
-    classifier = fitclinear(X_train, Y_train, 'ObservationsIn','columns');
+    classifier = fitclinear(X_train, Y_train, 'ObservationsIn','columns','Regularization',classifier_result.regularization);
     accuracy_train_c = 1 - loss(classifier, X_train, Y_train, 'ObservationsIn','columns');
     % classifier = TrainNMClassifier(data_c(trainEpochs,:), timeSeries_c(trainEpochs,:), condNames);
     % [~, accuracy_train_c] = ValidateNMClassifier(data_c(trainEpochs,:), ...

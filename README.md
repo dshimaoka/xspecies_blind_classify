@@ -35,7 +35,14 @@ show_NMclassifier_single.m: scatter plot of accuracy of all valid operations
 
 Support-vector machine classification using all operations:
 Functions:
-SVMclassifier_cv: train classifier using fitclinear for each cross-validation partition then validate using predict
+SVMclassifier_cv: train classifier using fitclinear (ridge/lasso regression) for each cross-validation partition then validate using predict
 show_SVMclassifier_single: show histogram of weights averaged across partitions
+parcellateEpochs: create partitions for cross-validation cf.cvpartition
 
-
+Visualizing results
+show_resultMatrix.m: creates following figures 
+    resultMatrix_nm_(violin)_xx: accuracy on trained and validation data using nm classifier
+    resultMatrix_svm_(violin)_xx: accuracy on trained and validation data using svm classifier
+    svmWeights_train_train_xx_validate_xx: 
+    resultMatrix_svm_nm(_violin): improved accuracy on validation data using svm against nm
+    overlapOperations_svm_nm: 

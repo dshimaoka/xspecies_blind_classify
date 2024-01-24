@@ -6,10 +6,12 @@ dirPref = getpref('cosProject','dirPref');
 preprocessSuffix = '_subtractMean_removeLineNoise';
 rebuildMatrix = true;
 
-species_train = 'macaque';%
-subject_train = 'George';%
-species_validate =  'human'; %
-subject_validate = '376';%
+species_train = 'macaque';%'human'; %
+subject_train = 'George';%'376';%
+species_validate = 'macaque';% 'human'; %
+subject_validate = 'George';%'376';%
+
+svm_type = 'lasso';
 
 channel_dir_train = fullfile(dirPref.rootDir, 'preprocessed',species_train, subject_train);
 load(fullfile(channel_dir_train,['detectChannels_' subject_train]) , 'tgtChannels','channelsByLobe','lobeNames');
@@ -25,10 +27,12 @@ clear tgtChannels channelsByLobe lobeNames
 
 load_dir = fullfile(dirPref.rootDir, ['results' preprocessSuffix]);
 saveSuffix = ['train_' species_train '_'  subject_train '_validate_' species_validate '_'  subject_validate];
+if strcmp(svm_type, 'lasso')
+    saveSuffix = ['lasso_' saveSuffix];
+end
 saveMatrixName = fullfile(load_dir, saveSuffix);
 
 if rebuildMatrix
-
     ngIdx = detectNGidx_NMclassification(load_dir, species_train, subject_train, tgtChannels_train, ...
         species_validate, subject_validate, tgtChannels_validate);
     if ~isempty(ngIdx)
@@ -57,10 +61,15 @@ if rebuildMatrix
             data.best_consistency = max(mean(data.consisetencies,3));
             result_nm{ii,jj} = data;
 
-            load(out_file, 'svm_cv');
-            result_svm{ii,jj} = svm_cv;
+            if ~strcmp(svm_type, 'lasso')
+                load(out_file, 'svm_cv');
+                result_svm{ii,jj} = svm_cv;
+            elseif strcmp(svm_type, 'lasso')
+                load(out_file, 'svm_lasso_cv');
+                result_svm{ii,jj} = svm_lasso_cv;
+            end
 
-            clear svm_cv data
+            clear svm_lasso_cv data
         end
     end
     save(saveMatrixName, ...
@@ -197,7 +206,7 @@ for im = 1
 end
 squareplots(f1);
 screen2png(fullfile(load_dir, ['resultMatrix_svm_nm_' saveSuffix]),f1);
-screen2png(fullfile(load_dir, ['resultMatrix_svm__nm_violin_' saveSuffix]) ,f2);
+screen2png(fullfile(load_dir, ['resultMatrix_svm_nm_violin_' saveSuffix]) ,f2);
 
 
 %% common metrics between NM and SVM

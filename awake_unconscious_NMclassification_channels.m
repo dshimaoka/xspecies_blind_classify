@@ -8,7 +8,7 @@
 
 if isempty(getenv('COMPUTERNAME'))
     [~,narrays] = getArray('script_NMclassification.sh');
-%addDirPrefs_COS;  DO NOT ADD THIS IN A BATCH JOB
+    %addDirPrefs_COS;  DO NOT ADD THIS IN A BATCH JOB
 else
     narrays = 1;
 end
@@ -22,10 +22,10 @@ dirPref = getpref('cosProject','dirPref');
 preprocessSuffix = '_subtractMean_removeLineNoise';
 svm = true;%false;
 ncv = 10;
-species_train = 'macaque';
-subject_train = 'George';
-species_validate = 'human';%
-subject_validate = '376';%
+species_train ='human';% 'macaque';
+subject_train = '376';%'George';
+species_validate = 'human';%'macaque';%
+subject_validate = '376';%'George';%
 
 load_dir_train = fullfile(dirPref.rootDir, 'preprocessed',species_train,subject_train);
 hctsa_dir_train = fullfile(dirPref.rootDir, ['hctsa' preprocessSuffix],species_train,subject_train);
@@ -63,51 +63,68 @@ for JID = 1:maxJID
         ch_validate = tgtChannels_validate(jj);
         out_file = fullfile(save_dir, sprintf('train_%s_%s_ch%03d_validate_%s_%s_ch%03d_accuracy', ...
             species_train, subject_train, ch_train, species_validate,subject_validate, ch_validate));
-      
-            file_string_train = fullfile(hctsa_dir_train,  sprintf('%s_%s_ch%03d_hctsa', species_train, subject_train, ch_train));
-            trainData = load([file_string_train '.mat'], 'Operations', 'TS_DataMat', 'TimeSeries', 'TS_Normalised');
 
-            file_string_validate = fullfile(hctsa_dir_validate,  sprintf('%s_%s_ch%03d_hctsa', species_validate, subject_validate, ch_validate));
-            validateData = load([file_string_validate '.mat'], 'Operations', 'TS_DataMat', 'TimeSeries', 'TS_Normalised');
+        file_string_train = fullfile(hctsa_dir_train,  sprintf('%s_%s_ch%03d_hctsa', species_train, subject_train, ch_train));
+        trainData = load([file_string_train '.mat'], 'Operations', 'TS_DataMat', 'TimeSeries', 'TS_Normalised');
 
-            %% train nearest-median classifier w cross-validation
-            [classifier_cv, fig] =  NMclassifier_cv(trainData, validateData, ncv);
-            set(fig,'Position',[0 0 1000 500]);
-            screen2png(out_file, fig);
-            close(fig);
+        file_string_validate = fullfile(hctsa_dir_validate,  sprintf('%s_%s_ch%03d_hctsa', species_validate, subject_validate, ch_validate));
+        validateData = load([file_string_validate '.mat'], 'Operations', 'TS_DataMat', 'TimeSeries', 'TS_Normalised');
 
-            
-            %% getConsistency
-            [consisetencies, consistencies_random] = getConsistency(trainData.TS_DataMat, trainData.TimeSeries, {'awake','unconscious'});
+        % % %% train nearest-median classifier w cross-validation
+        % % [classifier_cv, fig] =  NMclassifier_cv(trainData, validateData, ncv);
+        % % set(fig,'Position',[0 0 1000 500]);
+        % % screen2png(out_file, fig);
+        % % close(fig);
+        % % 
+        % % 
+        % % %% getConsistency
+        % % [consisetencies, consistencies_random] = getConsistency(trainData.TS_DataMat, trainData.TimeSeries, {'awake','unconscious'});
+        % % 
+        % % %% stats
+        % % accuracy = mean(classifier_cv.accuracy_validate,2)';
+        % % accuracy_rand = mean(classifier_cv.accuracy_validate_rand,2)';
+        % % [nsig_accuracy, p_accuracy, p_fdr_accuracy_th] = get_sig_features(accuracy, accuracy_rand, classifier_cv.validFeatures);
+        % % 
+        % % consistency = mean(consisetencies, 3);
+        % % consistency_rand = mean(consistencies_random,3);
+        % % [nsig_consistency,p_consistency,p_fdr_consistency_th] = get_sig_features(consistency, consistency_rand, classifier_cv.validFeatures);
+        % % 
+        % % save(out_file, 'classifier_cv',"p_fdr_consistency_th","p_consistency","p_fdr_accuracy_th",...
+        % %     "p_accuracy","consisetencies",'consistencies_random','nsig_consistency',"nsig_accuracy");
+        % % 
+        % % %% train SVM (with ridge regularization)
+        % % [svm_cv] =  SVMclassifier_cv(trainData, validateData, ncv);
+        % % save(out_file, "svm_cv",'-append');
+        % % 
+        % % fig = figure('Visible','off');
+        % % show_SVMclassifier_single(svm_cv);%, [], p_weight, p_fdr_weight_th);
+        % % set(gca,'yscale','log');
+        % % axis tight padded;
+        % % 
+        % % figname = fullfile(save_dir, sprintf('svmWeights_train_%s_%s_ch%03d_validate_%s_%s_ch%03d_accuracy.mat', ...
+        % %     species_train, subject_train, ch_train,...
+        % %     species_validate,subject_validate, ch_validate));
+        % % screen2png(figname, fig);
+        % % close ;
 
-            %% stats
-            accuracy = mean(classifier_cv.accuracy_validate,2)';
-            accuracy_rand = mean(classifier_cv.accuracy_validate_rand,2)';
-            [nsig_accuracy, p_accuracy, p_fdr_accuracy_th] = get_sig_features(accuracy, accuracy_rand, classifier_cv.validFeatures);
 
-            consistency = mean(consisetencies, 3);
-            consistency_rand = mean(consistencies_random,3);
-            [nsig_consistency,p_consistency,p_fdr_consistency_th] = get_sig_features(consistency, consistency_rand, classifier_cv.validFeatures);
+        %% train SVM with lasso regularization
+        [svm_lasso_cv] =  SVMclassifier_cv(trainData, validateData, ncv, [],'lasso');
+        save(out_file, "svm_lasso_cv",'-append');
 
-            save(out_file, 'classifier_cv',"p_fdr_consistency_th","p_consistency","p_fdr_accuracy_th",...
-                "p_accuracy","consisetencies",'consistencies_random','nsig_consistency',"nsig_accuracy");
-             
-            %% train SVM
-                [svm_cv] =  SVMclassifier_cv(trainData, validateData, ncv);
-                save(out_file, "svm_cv",'-append');
-      
-                     fig = figure('Visible','off');
-        show_SVMclassifier_single(svm_cv);%, [], p_weight, p_fdr_weight_th);
+        fig = figure('Visible','off');
+        show_SVMclassifier_single(svm_lasso_cv);%, [], p_weight, p_fdr_weight_th);
         set(gca,'yscale','log');
         axis tight padded;
-       
-        figname = fullfile(save_dir, sprintf('svmWeights_train_%s_%s_ch%03d_validate_%s_%s_ch%03d_accuracy.mat', ...
+
+        figname = fullfile(save_dir, sprintf('svm_lasso_Weights_train_%s_%s_ch%03d_validate_%s_%s_ch%03d_accuracy.mat', ...
             species_train, subject_train, ch_train,...
             species_validate,subject_validate, ch_validate));
         screen2png(figname, fig);
         close ;
-   
-               
+
+        clear svm_lasso_cv
+
         clear validateData trainData 'classifier_cv' "p_fdr_consistency_th" "p_consistency" "p_fdr_accuracy_th"...
             "p_accuracy" "consisetencies" 'consistencies_random' 'nsig_consistency' "nsig_accuracy"
 
