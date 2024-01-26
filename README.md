@@ -46,3 +46,4 @@ show_resultMatrix.m: creates following figures
     svmWeights_train_train_xx_validate_xx: 
     resultMatrix_svm_nm(_violin): improved accuracy on validation data using svm against nm
     overlapOperations_svm_nm: 
+show_result_trainTypes: use result of show_resultMatrix, create figures comparing accuracy by NM and SVM

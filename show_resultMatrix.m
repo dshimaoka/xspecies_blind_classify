@@ -4,14 +4,14 @@
 addDirPrefs_COS;
 dirPref = getpref('cosProject','dirPref');
 preprocessSuffix = '_subtractMean_removeLineNoise';
-rebuildMatrix = true;
+rebuildMatrix = false;
+svm_type = 'ridge';%'lasso';
 
 species_train = 'macaque';%'human'; %
 subject_train = 'George';%'376';%
-species_validate = 'macaque';% 'human'; %
-subject_validate = 'George';%'376';%
+species_validate =  'human'; %
+subject_validate = '376';%
 
-svm_type = 'lasso';
 
 channel_dir_train = fullfile(dirPref.rootDir, 'preprocessed',species_train, subject_train);
 load(fullfile(channel_dir_train,['detectChannels_' subject_train]) , 'tgtChannels','channelsByLobe','lobeNames');
@@ -80,6 +80,17 @@ end
 
 
 %% figures for neareset median
+
+% best classifier across validation channels
+best_accuracy_classifier = cell(12);
+for ii = 1:12 %training ch
+    for jj = 1:12 %validation ch
+        [~, best_accuracy_classifier_idx]  = max(mean(result_nm{ii,jj}.classifier_cv.accuracy_validate,2));
+        best_accuracy_classifier(ii,jj) =  result_nm{1,1}.classifier_cv.operations{best_accuracy_classifier_idx,4};
+    end
+end
+
+
 f1=figure; f2=figure;
 statMat_nm = [];
 for im = 1:4
@@ -104,22 +115,31 @@ for im = 1:4
     title(thisMetric);
     colorbar;
 
-    % compare within lobe v between lobes
-    [withinlobe, betweenlobes] = extractLobes(squeeze(statMat_nm(:,:,im)), tgtChannels_train, channelsByLobe_train,...
-        tgtChannels_validate, channelsByLobe_validate);
+    % compare performance across lobes
     figure(f2);
     subplot(2,2,im);
-    violin({withinlobe',betweenlobes'},'xlabel',{'within','between'});
-    [h,p] = ttest2(withinlobe, betweenlobes);
-    title(sprintf('%s\np=%3f',thisMetric,p));
+    [withinlobe, betweenlobes, eachLobe] = extractLobes(squeeze(statMat_nm(:,:,im)), tgtChannels_train, channelsByLobe_train,...
+        tgtChannels_validate, channelsByLobe_validate);
+    %violin({withinlobe',betweenlobes'},'xlabel',{'within','between'});
+    %[h,p] = ttest2(withinlobe, betweenlobes);
+    %title(sprintf('%s\np=%3f',thisMetric,p));
+    violin({eachLobe{1},eachLobe{2},eachLobe{3},eachLobe{4}},'xlabel', lobeNames_validate);
+
+    
+
+    if im==3
+        nm_accuracy_eachLobe = eachLobe;
+        save([saveMatrixName '_accuracy'],'nm_accuracy_eachLobe');
+    end
 end
+
 squareplots(f1);
 screen2png(fullfile(load_dir,['resultMatrix_nm_' saveSuffix]),f1);
-screen2png(fullfile(load_dir, ['resultMatrix_nm_violin_' saveSuffix]) ,f2);
+screen2png(fullfile(load_dir, ['resultMatrix_nm_violin_eachLobe_' saveSuffix]) ,f2);
 %best accuracy - did not depend on training channel - dubious
 %best consistency & nsig consistent - did depend on training channel -dubious
 %nsig accuracy & nsig consistent - values too high
-
+close all;
 
 %% figures for svm
 f1=figure; f2=figure;
@@ -143,17 +163,24 @@ for im = 1:2
     colorbar;
 
     % compare within lobe v between lobes
-    [withinlobe, betweenlobes] = extractLobes(squeeze(statMat_svm(:,:,im)), tgtChannels_train, channelsByLobe_train,...
+    [withinlobe, betweenlobes, eachLobe] = extractLobes(squeeze(statMat_svm(:,:,im)), tgtChannels_train, channelsByLobe_train,...
         tgtChannels_validate, channelsByLobe_validate);
     figure(f2);
     subplot(2,2,im);
-    violin({withinlobe',betweenlobes'},'xlabel',{'within','between'});
-    [h,p] = ttest2(withinlobe, betweenlobes);
-    title(sprintf('%s\np=%3f',thisMetric,p));
+    %violin({withinlobe',betweenlobes'},'xlabel',{'within','between'});
+    %[h,p] = ttest2(withinlobe, betweenlobes);
+    %title(sprintf('%s\np=%3f',thisMetric,p));
+    violin({eachLobe{1},eachLobe{2},eachLobe{3},eachLobe{4}},'xlabel', lobeNames_validate);
+
+    if im==2
+        svm_accuracy_eachLobe = eachLobe;
+        save([saveMatrixName '_accuracy'],'svm_accuracy_eachLobe','-append');
+    end
 end
 squareplots(f1);
 screen2png(fullfile(load_dir, ['resultMatrix_svm_' saveSuffix]),f1);
 screen2png(fullfile(load_dir, ['resultMatrix_svm_violin_' saveSuffix]) ,f2);
+close all
 
 
 %% histogram of SVM weights
@@ -169,7 +196,7 @@ for ii = 1:numel(tgtChannels_train)
         show_SVMclassifier_single(result_svm{ii,jj});%, [], p_weight, p_fdr_weight_th);
         set(gca,'yscale','log');
         axis tight padded;
-       
+
         figname = fullfile(load_dir, sprintf('svmWeights_train_%s_%s_ch%03d_validate_%s_%s_ch%03d_accuracy.mat', ...
             species_train, subject_train, ch_train,...
             species_validate,subject_validate, ch_validate));
@@ -188,7 +215,7 @@ for im = 1
     figure(f1);
     subplot(2,2,im);
     imagesc(thisMatrix);
-   caxis([-0.2 0.2]);
+    caxis([-0.2 0.2]);
     set(gca,'xtick',[2 5 8 11],'XTickLabel',lobeNames_train,'ytick',[2 5 8 11],'YTickLabel',lobeNames_validate)
     vline([3 6 9]+.5,gca,'-');
     hline([3 6 9]+.5,gca,'-');
@@ -274,25 +301,25 @@ squareplot;
 mcolorbar;
 
 
-   [withinlobe, betweenlobes] = extractLobes(nOperations_nm_svm, tgtChannels_train, channelsByLobe_train,...
-        tgtChannels_validate, channelsByLobe_validate);
-    subplot(234);
-    violin({withinlobe',betweenlobes'},'xlabel',{'within','between'});
-    [h,p] = ttest2(withinlobe, betweenlobes);
-    title(sprintf('%s\np=%3f','nOperations_n_svm',p));
+[withinlobe, betweenlobes] = extractLobes(nOperations_nm_svm, tgtChannels_train, channelsByLobe_train,...
+    tgtChannels_validate, channelsByLobe_validate);
+subplot(234);
+violin({withinlobe',betweenlobes'},'xlabel',{'within','between'});
+[h,p] = ttest2(withinlobe, betweenlobes);
+title(sprintf('%s\np=%3f','nOperations_n_svm',p));
 
-   [withinlobe, betweenlobes] = extractLobes(nOperations_bothCh_nm, tgtChannels_train, channelsByLobe_train,...
-        tgtChannels_train, channelsByLobe_train);
-    subplot(235);
-    violin({withinlobe',betweenlobes'},'xlabel',{'within','between'});
-    [h,p] = ttest2(withinlobe, betweenlobes);
-    title(sprintf('%s\np=%3f','nOperations_bothCh_nm',p));
+[withinlobe, betweenlobes] = extractLobes(nOperations_bothCh_nm, tgtChannels_train, channelsByLobe_train,...
+    tgtChannels_train, channelsByLobe_train);
+subplot(235);
+violin({withinlobe',betweenlobes'},'xlabel',{'within','between'});
+[h,p] = ttest2(withinlobe, betweenlobes);
+title(sprintf('%s\np=%3f','nOperations_bothCh_nm',p));
 
-   [withinlobe, betweenlobes] = extractLobes(nOperations_bothCh_svm, tgtChannels_train, channelsByLobe_train,...
-        tgtChannels_train, channelsByLobe_train);
-    subplot(236);
-    violin({withinlobe',betweenlobes'},'xlabel',{'within','between'});
-    [h,p] = ttest2(withinlobe, betweenlobes);
-    title(sprintf('%s\np=%3f','nOperations_bothCh_svm',p));
+[withinlobe, betweenlobes] = extractLobes(nOperations_bothCh_svm, tgtChannels_train, channelsByLobe_train,...
+    tgtChannels_train, channelsByLobe_train);
+subplot(236);
+violin({withinlobe',betweenlobes'},'xlabel',{'within','between'});
+[h,p] = ttest2(withinlobe, betweenlobes);
+title(sprintf('%s\np=%3f','nOperations_bothCh_svm',p));
 
 screen2png(fullfile(load_dir, ['overlapOperations_svm_nm_' saveSuffix ]),f);

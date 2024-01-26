@@ -1,9 +1,10 @@
-function [withinlobe, betweenlobes] = extractLobes(thisMatrix, tgtChannels_train, channelsByLobe_train,...
+function [withinlobe, betweenlobes, eachLobe] = extractLobes(thisMatrix, tgtChannels_train, channelsByLobe_train,...
     tgtChannels_validate, channelsByLobe_validate)
 % [withinlobe, betweenlobes] = extractLobes(thisMatrix, tgtChannels, channelsByLobe)
 
     withinlobe = [];
     betweenlobes = [];
+    eachLobe = cell(numel(channelsByLobe_validate),1);
     for ii = 1:numel(tgtChannels_train)
 
         for jj = 1:numel(tgtChannels_validate)
@@ -23,5 +24,7 @@ function [withinlobe, betweenlobes] = extractLobes(thisMatrix, tgtChannels_train
                     betweenlobes = [betweenlobes thisMatrix(ii,jj)];
                 end
             end
+    
+            eachLobe{lobeIdx_validate} = [eachLobe{lobeIdx_validate};  thisMatrix(ii,jj)];
         end
     end
