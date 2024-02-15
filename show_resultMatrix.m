@@ -18,6 +18,7 @@ load(fullfile(channel_dir_train,['detectChannels_' subject_train]) , 'tgtChannel
 tgtChannels_train= tgtChannels;
 channelsByLobe_train = channelsByLobe;
 lobeNames_train = lobeNames;
+
 channel_dir_validate = fullfile(dirPref.rootDir, 'preprocessed',species_validate, subject_validate);
 load(fullfile(channel_dir_validate,['detectChannels_' subject_validate]), 'tgtChannels' ,'channelsByLobe','lobeNames');
 tgtChannels_validate= tgtChannels;
@@ -125,8 +126,6 @@ for im = 1:4
     %title(sprintf('%s\np=%3f',thisMetric,p));
     violin({eachLobe{1},eachLobe{2},eachLobe{3},eachLobe{4}},'xlabel', lobeNames_validate);
 
-    
-
     if im==3
         nm_accuracy_eachLobe = eachLobe;
         save([saveMatrixName '_accuracy'],'nm_accuracy_eachLobe');
@@ -140,6 +139,9 @@ screen2png(fullfile(load_dir, ['resultMatrix_nm_violin_eachLobe_' saveSuffix]) ,
 %best consistency & nsig consistent - did depend on training channel -dubious
 %nsig accuracy & nsig consistent - values too high
 close all;
+
+
+
 
 %% figures for svm
 f1=figure; f2=figure;

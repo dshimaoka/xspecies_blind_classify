@@ -18,10 +18,10 @@ for tt = 1:3
             species_validate =  'macaque';%'human'; %
             subject_validate = 'George';%'376';%
         case 3
-            species_train = 'human'; %
-            subject_train = '376';%
-            species_validate =  'macaque';%'human'; %
-            subject_validate = 'George';%'376';%
+            species_train = 'macaque';%'human'; %
+            subject_train = 'George';%'376';%
+            species_validate = 'human'; %
+            subject_validate ='376';%
     end
 
     channel_dir_train = fullfile(dirPref.rootDir, 'preprocessed',species_train, subject_train);
