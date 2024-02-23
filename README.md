@@ -6,6 +6,7 @@ extractLobes.m:
 NeurotychoChannelGroup: retrieve channel group (8)
 NeurotychoChannelLobe: retrieve channel lobe (4)
 getCondTrials: from TimeSeries data (result of HCTSA) and specified condition(s), return condition id of each epoch
+clusterFeatures: reorder columns based on correlation-distance clustering
 
 Channel information:
 detectChannels_macaque.m

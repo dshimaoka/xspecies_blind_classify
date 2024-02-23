@@ -1,5 +1,5 @@
-function [classifier_result, fig] =  NMclassifier_cv(trainData, validateData, ncv, condNames, hctsaType) 
-% classifier_result =  NMclassifier_cv(trainData, validateData, trainFraction, ncv, labelToClassify) 
+function [classifier_result, fig] =  NMclassifier_epochs(trainData, validateData, nDraws, nEpochs, condNames, hctsaType) 
+% classifier_result =  NMclassifier_cv(trainData, validateData, trainFraction, nDraws, labelToClassify) 
 
 %INPUT
 %trainData/validateData
@@ -24,14 +24,17 @@ assert(isequal(trainData.Operations, validateData.Operations));
 % if nargin < 3 || isempty(trainFraction)
 %     trainFraction = 0.8; %[0-1]
 % end
-if nargin < 3 || isempty(ncv)
-    ncv=10; 
+if nargin < 3 || isempty(nDraws)
+    nDraws=10; 
 end
-if nargin < 4 || isempty(condNames)
+if nargin < 4 || isempty(nEpochs)
+    nEpochs = [10 100]; %#epochs for training and validation
+end
+if nargin < 5 || isempty(condNames)
     condNames = {'awake','unconscious'};
 end
 
-if nargin < 5
+if nargin < 6
     hctsaType = 'TS_Normalised';
 end
 
@@ -45,23 +48,23 @@ classifier_result.operations = trainData.Operations;
 %classifier_result.trainFraction = trainFraction;
 classifier_result.validFeatures = validFeatures;
 
-parcelledEpochs_train = parcellateEpochs(trainData, condNames, ncv);
+parcelledEpochs_train = randEpochs(trainData, condNames, nDraws, nEpochs);
 if isequal(trainData.TimeSeries, validateData.TimeSeries)
     parcelledEpochs_validate = parcelledEpochs_train;
 else
-    parcelledEpochs_validate = parcellateEpochs(validateData, condNames, ncv);
+    parcelledEpochs_validate =randEpochs(validateData, condNames, nDraws);
 end
 
-parfor icv = 1:ncv
+for idraw = 1:nDraws
 
     if verbose
-        disp([num2str(icv) '/' num2str(ncv)]);
+        disp([num2str(idraw) '/' num2str(nDraws)]);
     end
 
-    trainParcelIdx = setxor(1:ncv, icv);
-    validateParcelIdx = icv;
-    trainEpochs = [parcelledEpochs_train{trainParcelIdx}];
-    validateEpochs = [parcelledEpochs_validate{validateParcelIdx}];
+    %trainParcelIdx = setxor(1:nDraws, idraw);
+    %validateParcelIdx = idraw;
+    trainEpochs = [parcelledEpochs_train{1, idraw}];
+    validateEpochs = [parcelledEpochs_validate{2, idraw}];
 
     data_c = trainData.(hctsaType);
     timeSeries_c = trainData.TimeSeries;
@@ -74,11 +77,11 @@ parfor icv = 1:ncv
     [predicted, accuracy_validate_c, accuracy_validate_rand_c] = ValidateNMClassifier(data_c(validateEpochs,:), ...
         classifier,  timeSeries_c(validateEpochs,:), condNames);
 
-    threshold(:,icv) = classifier.threshold;
-    direction(:,icv) = classifier.direction;
-    accuracy_train(:,icv) = accuracy_train_c;
-    accuracy_validate(:,icv) = accuracy_validate_c;
-    accuracy_validate_rand(:,icv) = accuracy_validate_rand_c;
+    threshold(:,idraw) = classifier.threshold;
+    direction(:,idraw) = classifier.direction;
+    accuracy_train(:,idraw) = accuracy_train_c;
+    accuracy_validate(:,idraw) = accuracy_validate_c;
+    accuracy_validate_rand(:,idraw) = accuracy_validate_rand_c;
     %classifier_result.predicted(:,:,icv) = predicted;
 end
 
