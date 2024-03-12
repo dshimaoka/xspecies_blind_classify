@@ -23,6 +23,7 @@ s_lineNoise = 1;
 
 %% Path
 addDirPrefs_COS;
+dirPref = getpref('cosProject','dirPref');
 save_dir = fullfile(dirPref.rootdir, 'preprocessed',species,subject);
 load_dir = fullfile(dirPref.rootdir,'Kirill Iowa Intracranial Data');
 

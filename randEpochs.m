@@ -16,7 +16,7 @@ function dividedEpochs = randEpochs(Data, condNames, nDraws, nEpochs, rngSeed)
 
 if nargin< 5
     % Set the random number generator seed
-    rngSeed = 42;
+    rngSeed = 100;%42;
 end
 rng(rngSeed); % You can use any integer value as the seed
 
@@ -42,9 +42,11 @@ for ipercel = 1:nDraws
     idx_percel_cond1 = randperm(numel(idx_perm{1}), sum(nEpochs_percel(1,:))); 
     idx_percel_cond2 = randperm(numel(idx_perm{2}), sum(nEpochs_percel(2,:)));
 
+    %for training [awake unconscious]
     dividedEpochs{1,ipercel} = [idx_perm{1}(idx_percel_cond1(1:nEpochs_percel(1,1))) ...
         idx_perm{2}(idx_percel_cond2(1:nEpochs_percel(2,1)))];
 
+    %for validation [awake unconscious]
     dividedEpochs{2,ipercel} =[idx_perm{1}(idx_percel_cond1(nEpochs_percel(1,1)+1:end)) ...
         idx_perm{2}(idx_percel_cond2(nEpochs_percel(2,1)+1:end))];
 end

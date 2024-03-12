@@ -12,7 +12,7 @@ if isempty(getenv('COMPUTERNAME'))
     rm_dir = {'/home/dshi0006/git/xspecies_blind_classify/obs'};
 
 elseif strcmp(getenv('COMPUTERNAME'), 'MU00011697')
-    add_dir = {'~/Documents/git/xspecies_blind_classify','~/Documents/git/hctsa', '~/Documents/git/dsbox'};
+    add_dir = {'~/Documents/git/xspecies_blind_classify','~/Documents/git/hctsa', '~/Documents/git/dsbox','~/Documents/git/export_fig'};
     rm_dir = {'/home/daisuke/Documents/git/xspecies_blind_classify/obs'};
 
     %for TISEAN

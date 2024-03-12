@@ -40,12 +40,17 @@ ax(1)=subplot(211);
 imagesc(data_a(order_e{1},:));title('awake');
 ax(2)=subplot(212);
 imagesc(data_u(order_e{2},:));title('unconscious');
+set(ax,'tickdir','out');
 
 fig2=figure;
-linecolors = colormap(fig2,cool(numel(refCodeStrings)));
+%linecolors = colormap(fig2,cool(numel(refCodeStrings)));
+linecolors = [0 1 0; 1 0 0];
+
 close(fig2);
 for ss = 1:numel(refOperation_idx_f)
-    reflines(gcf, refOperation_idx_f(ss),[],linecolors(ss,:))
+    %reflines(gcf, refOperation_idx_f(ss),[],linecolors(ss,:))
+    refvarrow(ax(1),refOperation_idx_f(ss),linecolors(ss,:))
+    refvarrow(ax(2),refOperation_idx_f(ss),linecolors(ss,:))
 end
 
 colormap(inferno);

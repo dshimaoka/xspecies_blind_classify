@@ -38,6 +38,7 @@ Functions:
 NMclassifier_cv.m:
 TrainNMClassifier:
 ValidateNMClassifier: 
+getValidFeatures: exclude features that include 1) constant values or 2)NaN. Features with Inf are kept
 classification_nearestMean/get_sig_features.m
 getConsistency.m: consistency metric across trials, created from main_directionConsistency by AL
 show_NMclassifier_single.m: scatter plot of accuracy of all valid operations
@@ -49,7 +50,7 @@ show_SVMclassifier_single: show histogram of weights averaged across partitions
 parcellateEpochs: create partitions for cross-validation cf.cvpartition
 
 Visualizing results
-compareValidation.m
+compareValidation.m: scatter plot classification accuracy macaque v human for fig
 show_resultMatrix.m: creates following figures 
     resultMatrix_nm_(violin)_xx: accuracy on trained and validation data using nm classifier
     resultMatrix_svm_(violin)_xx: accuracy on trained and validation data using svm classifier
@@ -58,4 +59,8 @@ show_resultMatrix.m: creates following figures
     overlapOperations_svm_nm: 
 show_result_trainTypes: use result of show_resultMatrix, create figures comparing accuracy by NM and SVM
 showSingleEpochHists: show histograms of a given feature index
+pdensity_awakeUnconscious: show histogram of a given featureacross epochs for fig2
 compareValidation.m: compare validation accuracy between human and monkey
+showHCTSAbarcodes.m
+NMclassification_selectCh: single-trial HCTSA barcode for fig1.
+NMclassification_nEpochs: nEpochs vs classification accuracy for fig2

@@ -1,6 +1,8 @@
 function [classifier_result, fig] =  NMclassifier_epochs(trainData, validateData, nDraws, nEpochs, condNames, hctsaType) 
-% classifier_result =  NMclassifier_cv(trainData, validateData, trainFraction, nDraws, labelToClassify) 
-
+% [classifier_result, fig] =  NMclassifier_epochs(trainData, validateData, nDraws, nEpochs, condNames, hctsaType) 
+% trains and validates a classifier using a given number of epochs for nDraws times
+% created from  NMclassifier_cv
+%
 %INPUT
 %trainData/validateData
 % .Operations
@@ -16,7 +18,7 @@ function [classifier_result, fig] =  NMclassifier_epochs(trainData, validateData
 % .accuracy_validate_rand
 
 verbose = false;
-visualize = false;
+% visualize = false;
 
 assert(isequal(trainData.Operations, validateData.Operations));
 
@@ -66,16 +68,18 @@ for idraw = 1:nDraws
     trainEpochs = [parcelledEpochs_train{1, idraw}];
     validateEpochs = [parcelledEpochs_validate{2, idraw}];
 
-    data_c = trainData.(hctsaType);
-    timeSeries_c = trainData.TimeSeries;
-    classifier = TrainNMClassifier(data_c(trainEpochs,:), timeSeries_c(trainEpochs,:), condNames);
-    [~, accuracy_train_c] = ValidateNMClassifier(data_c(trainEpochs,:), ...
-        classifier, timeSeries_c(trainEpochs,:), condNames);
+    % assert(isempty(intersect(trainEpochs, validateEpochs)))
 
-    data_c = validateData.(hctsaType);
-    timeSeries_c = validateData.TimeSeries;
-    [predicted, accuracy_validate_c, accuracy_validate_rand_c] = ValidateNMClassifier(data_c(validateEpochs,:), ...
-        classifier,  timeSeries_c(validateEpochs,:), condNames);
+    data_t = trainData.(hctsaType);
+    timeSeries_t = trainData.TimeSeries;
+    classifier = TrainNMClassifier(data_t(trainEpochs,:), timeSeries_t(trainEpochs,:), condNames);
+    [~, accuracy_train_c] = ValidateNMClassifier(data_t(trainEpochs,:), ...
+        classifier, timeSeries_t(trainEpochs,:), condNames);
+
+    data_v = validateData.(hctsaType);
+    timeSeries_v = validateData.TimeSeries;
+    [predicted, accuracy_validate_c, accuracy_validate_rand_c] = ValidateNMClassifier(data_v(validateEpochs,:), ...
+        classifier,  timeSeries_v(validateEpochs,:), condNames);
 
     threshold(:,idraw) = classifier.threshold;
     direction(:,idraw) = classifier.direction;
@@ -91,8 +95,8 @@ classifier_result.accuracy_train = accuracy_train;
 classifier_result.accuracy_validate = accuracy_validate;
 classifier_result.accuracy_validate_rand = accuracy_validate_rand;
 
-maccuracy_train = mean(accuracy_train,2);
-maccuracy_validate = mean(accuracy_validate,2);
+%maccuracy_train = mean(accuracy_train,2);
+%maccuracy_validate = mean(accuracy_validate,2);
 
 if nargout==2
     fig = figure;

@@ -23,8 +23,9 @@ p_value = p_value(validFeatures);
 
 [~, bestFeature_tv(1)] = max(maccuracy_train);
 [~, bestFeature_tv(2)] = max(maccuracy_validate);
-bestFeature_tv_name(1) = classifier_cv.operations{bestFeature_tv(1), 4};
-bestFeature_tv_name(2) = classifier_cv.operations{bestFeature_tv(2), 4};
+validIdx = find(validFeatures);
+bestFeature_tv_name(1) = classifier_cv.operations{validIdx(bestFeature_tv(1)), 4};
+bestFeature_tv_name(2) = classifier_cv.operations{validIdx(bestFeature_tv(2)), 4};
 
 if sum(p_value<p_th)>0
     a(1)=plot(thisAx, maccuracy_train(p_value<p_th), maccuracy_validate(p_value<p_th),'k.');
