@@ -178,7 +178,7 @@ for JID = 12%1:maxJID
         savePaperFigure(gcf,[out_file '_nEpochs']);
 
 
-        %% visualize all significant features
+        %% stats for all significant features
         for itv = 1:2
             p_var = zeros(numel(nEpochs_t)-1, 7755);
             p_mean = zeros(numel(nEpochs_t)-1, 7755);
@@ -215,6 +215,74 @@ for JID = 12%1:maxJID
             nFeatures_nonconverge_mean(itv) = sum(isnan(minEpoch_mean(sigFeatures)));
         end
 
+
+         %% visualize all features
+         figure('position',[0 0 800 900]);
+        for itv = 1:2
+            accuracy_c = squeeze(accuracy(:,itv,sigFeatures,:));
+                maccuracy = squeeze(mean(accuracy_c, 3));
+                sdaccuracy = squeeze(std(accuracy_c, [], 3));
+                
+                ax(itv,1) = subplot(3,2, itv);
+                errorbar(2*nEpochs_t, mean(maccuracy,2),std(maccuracy,[],2),'-o','color','k');hold on;
+                set(ax(itv,1),'XScale','log','xtick',2*nEpochs_t)
+                axis padded
+
+                 ax(itv,2) = subplot(3,2, itv+2);
+                errorbar(2*nEpochs_t, mean(sdaccuracy,2),std(sdaccuracy,[],2),'-o','color','k');hold on;
+                set(ax(itv,2),'XScale','log','xtick',2*nEpochs_t)
+                axis padded
+
+                if ss == 2 && itv == 1
+                    %legend(replace(refCodeStrings,'_','-'), 'location','northoutside');
+                    ylabel('classification accuracy');
+                end
+        end
+        linkaxes(ax(:,1));
+        linkaxes(ax(:,2));
+        
+        set(ax,'tickdir','out', 'box','off');
+
+        addpath(genpath('~/Documents/git/export_fig'));
+        savePaperFigure(gcf,[out_file '_nEpochs_all']);
+
+        %%
+        figure('position',[0 0 800 900]);
+        for itv = 1:2
+            accuracy_c = squeeze(accuracy(:,itv,sigFeatures,:));
+            maccuracy = squeeze(mean(accuracy_c, 3));
+            sdaccuracy = squeeze(std(accuracy_c, [], 3));
+
+            if itv==1
+                [~, order] = sort(maccuracy(end,:),2,'descend');
+            end
+
+            ax(itv,1) = subplot(3,2, itv);
+            imagesc(log10(2*nEpochs_t), 1:numel(sigFeatures), maccuracy(:,order)');
+            set(ax(itv,1),'Xtick',log10(2*nEpochs_t),'xtickLabel',2*nEpochs_t,'tickdir','out')
+            vline(log10(2*mean_nEpochs_mean(itv)))
+            clim([.5 .9]);
+            if itv == 2
+                ax(2,1)=mcolorbar(ax(2,1));
+            end
+
+            ax(itv,2) = subplot(3,2, itv+2);
+            imagesc(log10(2*nEpochs_t),  1:numel(sigFeatures), sdaccuracy(:,order)');
+            set(ax(itv,2),'Xtick',log10(2*nEpochs_t),'xtickLabel',2*nEpochs_t,'tickdir','out')
+            vline(log10(2*mean_nEpochs_var(itv)))
+            clim([0 0.25]);
+            if itv == 2
+                ax(2,2)=mcolorbar(ax(2,2));
+            end
+        end
+        linkcaxes(ax(:,1));
+        linkcaxes(ax(:,2));
+
+
+
+        addpath(genpath('~/Documents/git/export_fig'));
+        savePaperFigure(gcf,[out_file '_nEpochs_all']);
+
         %save('test','accuracy');
         clear validateData trainData 'classifier_train' 'classifier_validate' "p_fdr_consistency_th" "p_consistency" "p_fdr_accuracy_th"...
             "p_accuracy" "consisetencies" 'consistencies_random' 'nsig_consistency' "nsig_accuracy"
@@ -229,4 +297,6 @@ disp('error ID:')
 disp(errorID);
 
 save('NMclassification_nEpochs','mean_nEpochs_var','sd_nEpochs_var',"nFeatures_nonconverge_var",...
-    'mean_nEpochs_mean','sd_nEpochs_mean',"nFeatures_nonconverge_mean",'JID');
+    'mean_nEpochs_mean','sd_nEpochs_mean',"nFeatures_nonconverge_mean",'JID','accuracy','sigFeatures');
+
+

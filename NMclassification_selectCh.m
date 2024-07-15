@@ -18,7 +18,7 @@ pen = getPen;
 %% Settings
 add_toolbox_COS;
 dirPref = getpref('cosProject','dirPref');
-htcsaType = 'TS_DataMat';
+htcsaType = 'TS_Normalised';%'TS_DataMat';
 preprocessSuffix = '_subtractMean_removeLineNoise';
 svm = true;%false;
 ncv = 10;
@@ -90,18 +90,7 @@ for JID = maxJID
 
         order_f = validFeatures(clusterFeatures(trainData.(htcsaType)(:,validFeatures)));
         
-        % fig = showHCTSAbarcodes(trainData.TS_Normalised, trainData.TimeSeries, order_f, [], ...
-        %     classifier_cv.operations.CodeString, refCodeStrings);
-        % fig2 = showHCTSAbarcodes(validateData.TS_Normalised, validateData.TimeSeries, order_f, [], ...
-        %     classifier_cv.operations.CodeString, refCodeStrings);
-        % ff= mergefigs([fig fig2]);colormap(ff,"inferno");
-        % screen2png([out_file '_HCTSA_barcode.png'],ff);
-        % close all
- 
         data_all = [trainData.(htcsaType); validateData.(htcsaType) ];
-        % if strcmp(htcsaType, 'TS_DataMat')
-        %     data_all = hctsa2rank(data_all);
-        % end
         TimeSeries_all = [trainData.TimeSeries; validateData.TimeSeries];
 
         subjectEpochs{1} = find(getCondTrials(TimeSeries_all,subjectNames(1))==1);
@@ -141,12 +130,12 @@ for JID = maxJID
 
         %% proabability histograms for selected features
          ff_rc = pdensity_awakeUnconscious(data_all, TimeSeries_all, classifier_cv.operations.CodeString, ...
-             refCodeStrings{1}, subjectNames, condNames, 'log');
-         savePaperFigure(ff_rc,[out_file '_' replace(refCodeStrings{1},'_','-')]);
-         
+             refCodeStrings{1}, subjectNames, condNames, 'log',20);
+         savePaperFigure(ff_rc,[out_file '_' replace(refCodeStrings{1},{'_','.'},'-')]);
+
          ff_rc = pdensity_awakeUnconscious(data_all, TimeSeries_all, classifier_cv.operations.CodeString, ...
-             refCodeStrings{2}, subjectNames, condNames);
-         savePaperFigure(ff_rc,[out_file '_' replace(refCodeStrings{2},'_','-')]);
+             refCodeStrings{2}, subjectNames, condNames,[],20);
+         savePaperFigure(ff_rc,[out_file '_' replace(refCodeStrings{2},{'_','.'},'-')]);
 
 
          %% getConsistency
@@ -158,11 +147,31 @@ for JID = maxJID
         [nsig_accuracy, p_accuracy, p_fdr_accuracy_th] = get_sig_features(accuracy, accuracy_rand, ...
             classifier_cv.validFeatures,q);
 
-        fig = figure('position',[0 0 500 50]);
-        imagesc(accuracy(order_f));
-        colormap(inferno);
-        linkcaxes(gca, [0 1]); set(gca, 'tickdir','out','ytick',[]);
-         savePaperFigure(fig,[out_file '_barcode']);
+        fig = figure('position',[0 0 1000 50]);
+        ax(1)=subplot(121);
+        imagesc(mean(classifier_cv.accuracy_train(order_f,:),2)');
+        ax(2)=subplot(122);
+        imagesc(mean(classifier_cv.accuracy_validate(order_f,:),2)');
+        colormap(1-gray);
+        linkcaxes(ax(:), [0.5 1]); set(ax(:), 'tickdir','out','ytick',[]);
+  
+        linecolors = [0 1 0; 1 0 0];
+
+        refOperation_idx=[];
+        refOperation_idx_f=[]; 
+        for ss = 1:numel(refCodeStrings)
+              refOperation_idx(ss) =  find(strcmp(classifier_cv.operations.CodeString, refCodeStrings{ss}));
+            [~,refOperation_idx_f(ss)] = intersect(order_f, refOperation_idx(ss));
+        end
+
+        for ss = 1:numel(refOperation_idx_f)
+            refvarrow(ax(1),refOperation_idx_f(ss),linecolors(ss,:))
+            refvarrow(ax(2),refOperation_idx_f(ss),linecolors(ss,:))
+        end
+        drawnow();
+      mcolorbar;
+
+        savePaperFigure(fig,[out_file '_barcode']);
 
 
         %% consistency
