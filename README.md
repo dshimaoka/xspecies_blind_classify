@@ -37,7 +37,8 @@
 - getValidFeatures: exclude features that include 1) constant values or 2)NaN. Features with Inf are kept
 - classification_nearestMean/get_sig_features.m
 - getConsistency.m: consistency metric across trials, created from main_directionConsistency by AL
-- show_NMclassifier_single.m: scatter plot of accuracy of all valid operations
+- show_NMclassifier_single.m: scatter plot of accuracy of all valid operations (no longer used)
+- get_sig_features.m: Get features which perform significantly better than chance after FDR correction for multiple corrections, on valid features. Called in NMclassification_selectCh.m
 
 ## **Support-vector machine classification using all operations:**
 - SVMclassifier_cv: train classifier using fitclinear (ridge/lasso regression) for each cross-validation partition then validate using predict
