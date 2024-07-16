@@ -63,5 +63,4 @@
 - pdensity_awakeUnconscious: show histogram of a given feature across epochs for fig2
 - compareValidation.m: compare validation accuracy between human and monkey
 - showHCTSAbarcodes.m
-- NMclassification_selectCh: single-trial HCTSA barcode for fig1.
-- NMclassification_nEpochs: nEpochs vs classification accuracy for fig2
+- NMclassification_nEpochs: nEpochs vs classification accuracy for fig3
