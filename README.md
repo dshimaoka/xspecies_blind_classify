@@ -29,7 +29,10 @@
 
 
 ## **Nearest-median classification per channel:**
-- awake_unconscious_NMclassification_channels.m: train & validate NM classifier between all channel combinations
+- NMclassification_selectCh.m: train & validate NM classifier between selected channel combinations, creating following figures:
+  - histograms of single epochs of selected features (fig2)
+  - barcode of hctsa of all epochs (fig2)
+  - barcode of classification accuracy (fig2)
 - show_resultMatrix.m: show NM classifier performance (matrix and violin plot)
 - NMclassifier_cv.m:
 - TrainNMClassifier:
