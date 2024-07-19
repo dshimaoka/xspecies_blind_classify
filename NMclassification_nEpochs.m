@@ -4,7 +4,7 @@
 %
 % run after main_hctsa_3_postProcess.m(?)
 %
-% created from awake_unconscious_human_stats.m
+
 
 if isempty(getenv('COMPUTERNAME'))
     [~,narrays] = getArray('script_NMclassification.sh');
@@ -17,18 +17,18 @@ end
 pen = getPen;
 
 %% Settings
+addpath(genpath('~/Documents/git/export_fig'));
 add_toolbox_COS;
+param = getParam;
 dirPref = getpref('cosProject','dirPref');
 htcsaType = 'TS_DataMat';
 preprocessSuffix = '_subtractMean_removeLineNoise';
-svm = true;%false;
+svm = false;
 species_train ='macaque';
 subject_train = 'George';
 species_validate = 'human';%'macaque';%
 subject_validate = '376';%'George';%
-q = 0.01;
-refCodeStrings = {'DN_rms', ... %13
-    'MF_GP_hyperparameters_covSEiso_covNoise_1_200_resample.logh1'}; %6339
+refCodeStrings = {'MF_GP_hyperparameters_covSEiso_covNoise_1_200_resample.logh1'}; %6339
 
 %% number of epochs
 %nEpochs_t = round(logspace(0 ,2, 7)); %#epochs for training
@@ -77,14 +77,18 @@ for JID = 12%1:maxJID
         out_file = fullfile(save_dir, sprintf('%s_train_%s_%s_ch%03d_validate_%s_%s_ch%03d_accuracy', ...
             htcsaType, species_train, subject_train, ch_train, species_validate,subject_validate, ch_validate));
 
-        validateStats = load(out_file, "p_accuracy",'p_fdr_accuracy_th');
+        validateStats = load(out_file, 'classifier_cv',"p_accuracy",'p_fdr_accuracy_th','nsig_accuracy');
         
         out_file_t = fullfile(save_dir, sprintf('%s_train_%s_%s_ch%03d_validate_%s_%s_ch%03d_accuracy', ...
             htcsaType, species_train, subject_train, ch_train, species_train,subject_train, ch_train));
-        trainStats = load(out_file, "p_accuracy",'p_fdr_accuracy_th');
-        sigFeatures = find((trainStats.p_accuracy < trainStats.p_fdr_accuracy_th).* (validateStats.p_accuracy < validateStats.p_fdr_accuracy_th));
+        trainStats = load(out_file_t, 'classifier_cv',"p_accuracy",'p_fdr_accuracy_th','nsig_accuracy');
+        %sigFeatures = find((trainStats.p_accuracy < trainStats.p_fdr_accuracy_th).* (validateStats.p_accuracy < validateStats.p_fdr_accuracy_th));
 
-
+        validFeatures(:,1) = trainStats.classifier_cv.validFeatures;
+        validFeatures(:,2) = validateStats.classifier_cv.validFeatures;
+        allValid =sum(validFeatures,2)==2;
+        sigFeatures = find(trainStats.nsig_accuracy.*validateStats.nsig_accuracy.*allValid'); %17/7/24
+        
         file_string_train = fullfile(hctsa_dir_train,  sprintf('%s_%s_ch%03d_hctsa', species_train, subject_train, ch_train));
         trainData = load([file_string_train '.mat'], 'Operations', 'TS_DataMat', 'TimeSeries', 'TS_Normalised');
 
@@ -105,7 +109,7 @@ for JID = 12%1:maxJID
         end
     
         %% visualize example features
-        lcolors = [0 1 0; 1 0 0];
+        lcolors = [1 0 0];
         figure('position',[0 0 800 900]);
         for itv = 1:2
             refOperation_idx = [];
@@ -174,8 +178,7 @@ for JID = 12%1:maxJID
         linkaxes(ax(:,3));
         set(ax,'tickdir','out', 'box','off');
 
-        addpath(genpath('~/Documents/git/export_fig'));
-        savePaperFigure(gcf,[out_file '_nEpochs']);
+          savePaperFigure(gcf,[out_file '_nEpochs']);
 
 
         %% stats for all significant features
@@ -208,15 +211,26 @@ for JID = 12%1:maxJID
 
             mean_nEpochs_var(itv) = nanmean(minEpoch_var(sigFeatures));
             sd_nEpochs_var(itv) = nanstd(minEpoch_var(sigFeatures));
+            %% number of features whose standard deviation. did not converge
             nFeatures_nonconverge_var(itv) = sum(isnan(minEpoch_var(sigFeatures)));
 
             mean_nEpochs_mean(itv) = nanmean(minEpoch_mean(sigFeatures));
             sd_nEpochs_mean(itv) = nanstd(minEpoch_mean(sigFeatures));
+            %% number of features whose mean did not converge
             nFeatures_nonconverge_mean(itv) = sum(isnan(minEpoch_mean(sigFeatures)));
         end
 
+        %% for explanation of figure 3
+        fprintf('We assessed the minimal number of training epochs across %d hctsa features.\n', numel(sigFeatures))
+        fprintf('The mean classification accuracy saturated at %.0f epochs in macaque and %.0f  epochs in human (%d and %d features did not reach saturation).\n', ...
+            2*mean_nEpochs_mean(1), 2*mean_nEpochs_mean(2), nFeatures_nonconverge_mean(1), nFeatures_nonconverge_mean(2))
+        fprintf('Similarly, the standard deviation converged at %.0f epochs in macaque and %.0f  epochs in human (%d and %d features did not converge).\n', ...
+            2*mean_nEpochs_var(1), 2*mean_nEpochs_var(2), nFeatures_nonconverge_var(1), nFeatures_nonconverge_var(2))
+        fprintf('These findings suggest that a classifier with significant perfomance in both species would require %.0f epochs of 200ms, amounting %.0f seconds worth of data for training.\n',...
+            2*mean_nEpochs_var(2), 2*mean_nEpochs_var(2)*0.2);
 
-         %% visualize all features
+        
+        %% visualize all features
          figure('position',[0 0 800 900]);
         for itv = 1:2
             accuracy_c = squeeze(accuracy(:,itv,sigFeatures,:));
@@ -242,11 +256,10 @@ for JID = 12%1:maxJID
         linkaxes(ax(:,2));
         
         set(ax,'tickdir','out', 'box','off');
-
-        addpath(genpath('~/Documents/git/export_fig'));
         savePaperFigure(gcf,[out_file '_nEpochs_all']);
+        close(gcf);
 
-        %%
+        %% mean and sd of accuracy
         figure('position',[0 0 800 900]);
         for itv = 1:2
             accuracy_c = squeeze(accuracy(:,itv,sigFeatures,:));
@@ -277,11 +290,7 @@ for JID = 12%1:maxJID
         end
         linkcaxes(ax(:,1));
         linkcaxes(ax(:,2));
-
-
-
-        addpath(genpath('~/Documents/git/export_fig'));
-        savePaperFigure(gcf,[out_file '_nEpochs_all']);
+        savePaperFigure(gcf,[out_file '_nEpochs_mean_sd']);
 
         %save('test','accuracy');
         clear validateData trainData 'classifier_train' 'classifier_validate' "p_fdr_consistency_th" "p_consistency" "p_fdr_accuracy_th"...
@@ -296,7 +305,7 @@ end
 disp('error ID:')
 disp(errorID);
 
-save('NMclassification_nEpochs','mean_nEpochs_var','sd_nEpochs_var',"nFeatures_nonconverge_var",...
+save( fullfile(save_dir, 'NMclassification_nEpochs'),'mean_nEpochs_var','sd_nEpochs_var',"nFeatures_nonconverge_var",...
     'mean_nEpochs_mean','sd_nEpochs_mean',"nFeatures_nonconverge_mean",'JID','accuracy','sigFeatures');
 
 

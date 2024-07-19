@@ -2,9 +2,12 @@
 % train nearest median classifier & evaluate with the same or other channels and obtain consistency metric
 % this script uses parfor in NMclassifier_cv.m
 %
-% run after main_hctsa_3_postProcess.m(?)
+% run after main_hctsa_3_postProcess.m
 %
-% created from awake_unconscious_human_stats.m
+% created from awake_unconscious_human_stats.m 
+% unlike the original, this file computes only selected channel pairs thus
+% faster
+
 if isempty(getenv('COMPUTERNAME'))
     [~,narrays] = getArray('script_NMclassification.sh');
     %addDirPrefs_COS;  DO NOT ADD THIS IN A BATCH JOB
@@ -17,16 +20,15 @@ pen = getPen;
 
 %% Settings
 add_toolbox_COS;
+param = getParam;
 dirPref = getpref('cosProject','dirPref');
-htcsaType = 'TS_Normalised';%'TS_DataMat';
+htcsaType = 'TS_DataMat'; %'TS_Normalised';% %whether to use raw or normalized hctsa values
 preprocessSuffix = '_subtractMean_removeLineNoise';
-svm = true;%false;
-ncv = 10;
+svm = false;
 species_train ='macaque';
 subject_train = 'George';
-species_validate = 'human';%'macaque';%
-subject_validate = '376';%'George';%
-q = 0.01;
+species_validate = 'macaque';%'human';%
+subject_validate = 'George';%'376';%
 refCodeStrings = {'DN_rms', ... %13
     'MF_GP_hyperparameters_covSEiso_covNoise_1_200_resample.logh1'}; %6339
 
@@ -60,7 +62,7 @@ maxJID = numel(pen:narrays:numel(tgtIdx));
 %load('matlab_workspace.mat', 'maxcorrIdx');
 
 errorID = [];
-for JID = maxJID
+for JID = 1:maxJID
 
     %chIdx_total = tgtIdx(pen + (JID-1)*narrays);
     %[ii,jj] = ind2sub([numel(tgtChannels_train) numel(tgtChannels_validate)], chIdx_total);
@@ -80,7 +82,7 @@ for JID = maxJID
         validateData = load([file_string_validate '.mat'], 'Operations', 'TS_DataMat', 'TimeSeries', 'TS_Normalised');
 
         %% train nearest-median classifier w cross-validation
-        [classifier_cv, fig] =  NMclassifier_cv(trainData, validateData, ncv, [], htcsaType);
+        [classifier_cv, fig] =  NMclassifier_cv(trainData, validateData, param.ncv, [], htcsaType);
         set(fig,'Position',[0 0 1000 500]);
         screen2png(out_file, fig);
         close(fig);
@@ -144,8 +146,9 @@ for JID = maxJID
         %% accuracy
         accuracy = mean(classifier_cv.accuracy_validate,2)';
         accuracy_rand = mean(classifier_cv.accuracy_validate_rand,2)';
-        [nsig_accuracy, p_accuracy, p_fdr_accuracy_th] = get_sig_features(accuracy, accuracy_rand, ...
-            classifier_cv.validFeatures,q);
+        [nsig_accuracy, p_accuracy, p_fdr_accuracy_th,~,sig_thresh_accuracy_fdr] = ...
+            get_sig_features(accuracy, accuracy_rand, ...
+            classifier_cv.validFeatures, param.alpha, param.q);
 
         fig = figure('position',[0 0 1000 50]);
         ax(1)=subplot(121);
@@ -177,16 +180,18 @@ for JID = maxJID
         %% consistency
         consistency = mean(consisetencies, 3);
         consistency_rand = mean(consistencies_random,3);
-        [nsig_consistency,p_consistency,p_fdr_consistency_th] = get_sig_features(consistency, ...
-            consistency_rand, classifier_cv.validFeatures,q);
+        [nsig_consistency, p_consistency, p_fdr_consistency_th, ~, sig_thresh_consistency_fdr] = get_sig_features(consistency, ...
+            consistency_rand, classifier_cv.validFeatures,param.alpha, param.q);
 
         save(out_file, 'classifier_cv',"p_fdr_consistency_th","p_consistency","p_fdr_accuracy_th",...
-            "p_accuracy","consisetencies",'consistencies_random','nsig_consistency',"nsig_accuracy",'q',...
-            'order_f','order_e');
+            "p_accuracy","consisetencies",'consistencies_random','nsig_consistency',"nsig_accuracy", ...
+            'order_f','order_e','sig_thresh_consistency_fdr','sig_thresh_accuracy_fdr');
 
         clear validateData trainData 'classifier_cv' "p_fdr_consistency_th" "p_consistency" "p_fdr_accuracy_th"...
-            "p_accuracy" "consisetencies" 'consistencies_random' 'nsig_consistency' "nsig_accuracy"
+            "p_accuracy" "consisetencies" 'consistencies_random' 'nsig_consistency' "nsig_accuracy" ...
+            'sig_thresh_consistency_fdr' 'sig_thresh_accuracy_fdr'
 
+        close all
     catch err
         errorID = [errorID; JID];
         err

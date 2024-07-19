@@ -18,15 +18,13 @@ pen = getPen;
 
 %% Settings
 add_toolbox_COS;
+param = getParam;
 dirPref = getpref('cosProject','dirPref');
 preprocessSuffix = '_subtractMean_removeLineNoise';
-svm = true;%false;
-ncv = 10;
 species_train ='macaque';
 subject_train = 'George';
-species_validate = 'macaque';%
-subject_validate = 'George';%
-q = 0.01;
+species_validate = 'human';%'macaque';%
+subject_validate = '376';%'George';%
 
 load_dir_train = fullfile(dirPref.rootDir, 'preprocessed',species_train,subject_train);
 hctsa_dir_train = fullfile(dirPref.rootDir, ['hctsa' preprocessSuffix],species_train,subject_train);
@@ -52,7 +50,7 @@ tgtIdx  = 1:numel(tgtChannels_train)*numel(tgtChannels_validate);
 maxJID = numel(pen:narrays:numel(tgtIdx));
 
 errorID = [];
-for JID = 1%:maxJID
+for JID = 1:maxJID
 
     chIdx_total = tgtIdx(pen + (JID-1)*narrays);
     [ii,jj] = ind2sub([numel(tgtChannels_train) numel(tgtChannels_validate)], chIdx_total);
@@ -72,7 +70,7 @@ for JID = 1%:maxJID
         validateData = load([file_string_validate '.mat'], 'Operations', 'TS_DataMat', 'TimeSeries', 'TS_Normalised');
 
         %% train nearest-median classifier w cross-validation
-        [classifier_cv, fig] =  NMclassifier_cv(trainData, validateData, ncv);
+        [classifier_cv, fig] =  NMclassifier_cv(trainData, validateData, param.ncv);
         set(fig,'Position',[0 0 1000 500]);
         screen2png(out_file, fig);
         close(fig);
@@ -84,20 +82,22 @@ for JID = 1%:maxJID
         %% stats
         accuracy = mean(classifier_cv.accuracy_validate,2)';
         accuracy_rand = mean(classifier_cv.accuracy_validate_rand,2)';
-        [nsig_accuracy, p_accuracy, p_fdr_accuracy_th] = get_sig_features(accuracy, accuracy_rand, ...
-            classifier_cv.validFeatures,q);
+        [nsig_accuracy, p_accuracy, p_fdr_accuracy_th, ~, sig_thresh_accuracy_fdr] = ...
+            get_sig_features(accuracy, accuracy_rand, ...
+            classifier_cv.validFeatures,param.alpha, param.q);
 
         consistency = mean(consisetencies, 3);
         consistency_rand = mean(consistencies_random,3);
-        [nsig_consistency,p_consistency,p_fdr_consistency_th] = get_sig_features(consistency, ...
-            consistency_rand, classifier_cv.validFeatures,q);
+        [nsig_consistency, p_consistency, p_fdr_consistency_th, ~, sig_thresh_consistency_fdr] =  ...
+            get_sig_features(consistency, consistency_rand, classifier_cv.validFeatures, param.alpha, param.q);
 
         save(out_file, 'classifier_cv',"p_fdr_consistency_th","p_consistency","p_fdr_accuracy_th",...
-            "p_accuracy","consisetencies",'consistencies_random','nsig_consistency',"nsig_accuracy",'q');
+            "p_accuracy","consisetencies",'consistencies_random','nsig_consistency',"nsig_accuracy",...
+            "sig_thresh_consistency_fdr","sig_thresh_accuracy_fdr");
 
 
         % %% train SVM (with ridge regularization)
-        % [svm_cv] =  SVMclassifier_cv(trainData, validateData, ncv);
+        % [svm_cv] =  SVMclassifier_cv(trainData, validateData, param.ncv);
         % save(out_file, "svm_cv",'-append');
         % 
         % fig = figure('Visible','off');
@@ -113,7 +113,7 @@ for JID = 1%:maxJID
         % 
         % 
         % %% train SVM with lasso regularization
-        % [svm_lasso_cv] =  SVMclassifier_cv(trainData, validateData, ncv, [],'lasso');
+        % [svm_lasso_cv] =  SVMclassifier_cv(trainData, validateData, param.ncv, [],'lasso');
         % save(out_file, "svm_lasso_cv",'-append');
         % 
         % fig = figure('Visible','off');

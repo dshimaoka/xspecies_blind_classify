@@ -1,4 +1,8 @@
+% compare classification accuracy between human and macaque using the same
+% classifier trained with macaque data in NMclassification_selectCh.m
+
 %% Settings
+add_toolbox_COS;
 addDirPrefs_COS;
 dirPref = getpref('cosProject','dirPref');
 preprocessSuffix = '_subtractMean_removeLineNoise';
@@ -33,7 +37,7 @@ for JID = 1:numel(tgtChannels_train)
     p_accuracy = [];
     validatedata = cell(1,2);
     ch_train = tgtChannels_train(JID);
-        for vv = 1:2
+        for vv = 1:2 
             switch vv
                 case 1
                     species_validate = species_train;
@@ -59,13 +63,15 @@ for JID = 1:numel(tgtChannels_train)
                 htcsaType, species_train, subject_train, ch_train,...
                 species_validate,subject_validate, ch_validate));
             data = load(out_file, 'classifier_cv',"p_fdr_consistency_th","p_consistency","p_fdr_accuracy_th",...
-                "p_accuracy","consisetencies",'consistencies_random','nsig_consistency','nsig_accuracy');
+                "p_accuracy","consisetencies",'consistencies_random','nsig_consistency','nsig_accuracy','sig_thresh_accuracy_fdr');
 
             mean_accuracy(:,vv) = mean(data.classifier_cv.accuracy_validate,2);
-            p_accuracy(:,vv) = data.p_accuracy;
-            p_fdr_accuracy_th(vv) = data.p_fdr_accuracy_th;
+            p_accuracy(:,vv) = data.p_accuracy; %get_sig_features
+            p_fdr_accuracy_th(vv) = data.p_fdr_accuracy_th; %get_sig_features
             validFeatures(:,vv) = data.classifier_cv.validFeatures;
+            sig_thresh_accuracy_fdr(vv) = data.sig_thresh_accuracy_fdr;
 
+            
             ch_string{vv} = [species_validate '-ch' num2str(ch_validate)];
 
             [~, best_accuracy_idx(vv)]=max(mean_accuracy(:,vv));
@@ -95,25 +101,41 @@ for JID = 1:numel(tgtChannels_train)
      
 
         %% scatter plot accuracy
-        figure('position',[0 0 500 500]);
+        figure('position',[0 0 1000 500]);
+        subplot(121);
         plot(mean_accuracy(allValid,1), mean_accuracy(allValid,2),'.','Color',[.5 .5 .5]); hold on;
         nSig_accuracy_both = logical(sigFeatures(:,JID,1).*sigFeatures(:,JID,2));
         plot(mean_accuracy(nSig_accuracy_both,1), mean_accuracy(nSig_accuracy_both,2),'k.');
         plot(mean_accuracy(refOperation_idx(2),1), mean_accuracy(refOperation_idx(2),2),'ro')
         plot(mean_accuracy(refOperation_idx(1),1), mean_accuracy(refOperation_idx(1),2),'go')
-
-
         xlabel(ch_string{1}); ylabel(ch_string{2});
         squareplot;
-        axis padded
+        vline([sig_thresh_accuracy_fdr(1)], gca,'-','b'); vline(.5, gca,'-','k');
+        hline([sig_thresh_accuracy_fdr(2)], gca,'-','b'); hline(.5, gca,'-','k');
         set(gca,'tickdir','out');
+        axis padded;
+
+        subplot(122);
+        RowName = {'sig(Human)', 'nsig(Human)'};
+        ColumnName = {'-','nsig(Macque)','sig(Macaque)'};
+        Age = [sum(~sigFeatures(allValid,JID,1).*sigFeatures(allValid,JID,2)) sum(~sigFeatures(allValid,JID,1).*~sigFeatures(allValid,JID,2))];
+        Height = [sum(sigFeatures(allValid,JID,1).*sigFeatures(allValid,JID,2)) sum(sigFeatures(allValid,JID,1).*~sigFeatures(allValid,JID,2))];
+        T = table(RowName',Age',Height','VariableNames',ColumnName,'RowNames', RowName);
+        %uit = uitable('Data', table2cell(T), 'ColumnName',T.Properties.VariableNames,...
+        %    'Units', 'Normalized', 'Position',[0.5,0.1,0.3,0.3]);
+        
+        tableCell = [T.Properties.VariableNames; table2cell(T)];
+        tableCell(cellfun(@isnumeric,tableCell)) = cellfun(@num2str, tableCell(cellfun(@isnumeric,tableCell)),'UniformOutput',false);
+        tableChar = splitapply(@strjoin,pad(tableCell),[1;2;3]);
+        set(gca,'position',[0.5,0.1,0.3,0.3], 'Visible','off')
+        text(.2, .95, tableChar,'VerticalAlignment','Top','HorizontalAlignment','Left','FontName','Arial');
 
         savePaperFigure(gcf, fullfile(load_dir,['bestAccuracyHists_train_' ch_string{1} '_validate_' ch_string{2}]));
         close
 end
 
 %% save results
-save('compareValidation.mat','validFeatures_all',"mean_accuracy_all",'sigFeatures');
+save(fullfile(load_dir, 'compareValidation.mat'),'validFeatures_all',"mean_accuracy_all",'sigFeatures','nSig_accuracy');
 
 %% accuracy
 figure('position',[0 0 600 800])
@@ -130,9 +152,9 @@ plot(find(sigFeatures(refOperation_idx(2),:,1)==0), mean_accuracy_all(find(sigFe
 plot(find(sigFeatures(refOperation_idx(2),:,2)==0), mean_accuracy_all(find(sigFeatures(refOperation_idx(2),:,2)==0),2,refOperation_idx(2)),'ro','MarkerSize',7, 'LineWidth',.5)%human
 axis  padded square;
 ylim([0.35 0.9]); 
-vline([3.5 6.5 9.5]); hline(.5);
-set(gca,'tickdir','out','xtick',[2 5 8 11],'XTickLabel',{'Occipital','Parietal','Temporal','Frontal'});
-xlim([6.5 12.5]);
+vline([6.5 9.5]); hline(.5);
+set(gca,'tickdir','out','xtick',[2 5 8 11],'XTickLabel',{'Occipital','Parietal','Temporal','Frontal'},'box','off');
+xlim([3.5 12.5]);
 ylabel('accuracy');
 legend('macaque','human','location','southeast');
 
@@ -142,17 +164,17 @@ plot(nSig_accuracy(:,2),'ko','MarkerSize',7, 'LineWidth',2); hold on;
 plot(nSig_accuracy(:,3),'kx','MarkerSize',7, 'LineWidth',2); hold on;
 axis padded square;
 ylim([0 5500])
-vline([3.5 6.5 9.5]);
-set(gca,'tickdir','out','xtick',[2 5 8 11],'XTickLabel',{'Occipital','Parietal','Temporal','Frontal'});
-xlim([6.5 12.5]);
+vline([6.5 9.5]);
+set(gca,'tickdir','out','xtick',[2 5 8 11],'XTickLabel',{'Occipital','Parietal','Temporal','Frontal'},'box','off');
+xlim([3.5 12.5]);
 ylabel('#sig. features');
 legend('macaque','human','both','location','southeast');
 
-savePaperFigure(gcf,'nsig_accuracy')
+savePaperFigure(gcf,fullfile(load_dir,'nsig_accuracy'))
 
 %% stats
-mean(nSig_accuracy(7:12,3))
-std(nSig_accuracy(7:12,3))
+mean(nSig_accuracy(4:12,3))
+std(nSig_accuracy(4:12,3))
 
 %% for fig2 explanation
 mean_accuracy_all(12,:,refOperation_idx(1)) %RMS
