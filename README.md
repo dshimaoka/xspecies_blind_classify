@@ -29,7 +29,10 @@
 
 
 ## **Nearest-median classification per channel:**
-- awake_unconscious_NMclassification_channels.m: train & validate NM classifier between all channel combinations
+- NMclassification_selectCh.m: train & validate NM classifier between selected channel combinations, creating following figures:
+  - histograms of single epochs of selected features (fig2)
+  - barcode of hctsa of all epochs (fig2)
+  - barcode of classification accuracy (fig2)
 - show_resultMatrix.m: show NM classifier performance (matrix and violin plot)
 - NMclassifier_cv.m:
 - TrainNMClassifier:
@@ -37,7 +40,8 @@
 - getValidFeatures: exclude features that include 1) constant values or 2)NaN. Features with Inf are kept
 - classification_nearestMean/get_sig_features.m
 - getConsistency.m: consistency metric across trials, created from main_directionConsistency by AL
-- show_NMclassifier_single.m: scatter plot of accuracy of all valid operations
+- show_NMclassifier_single.m: scatter plot of accuracy of all valid operations Called in NMclassification_selectCh.m, but not for fig 2
+- get_sig_features.m: Get features which perform significantly better than chance after FDR correction for multiple corrections, on valid features. Called in NMclassification_selectCh.m
 
 ## **Support-vector machine classification using all operations:**
 - SVMclassifier_cv: train classifier using fitclinear (ridge/lasso regression) for each cross-validation partition then validate using predict
@@ -59,5 +63,4 @@
 - pdensity_awakeUnconscious: show histogram of a given feature across epochs for fig2
 - compareValidation.m: compare validation accuracy between human and monkey
 - showHCTSAbarcodes.m
-- NMclassification_selectCh: single-trial HCTSA barcode for fig1.
-- NMclassification_nEpochs: nEpochs vs classification accuracy for fig2
+- NMclassification_nEpochs: nEpochs vs classification accuracy for fig3
