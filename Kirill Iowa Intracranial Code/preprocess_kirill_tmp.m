@@ -43,8 +43,8 @@ params.removeFreq = [];
 
 %% load channels to process
 % load(fullfile(save_dir,['detectChannels_' subject]) ,'channel','tgtChannels','lobe');
-channel = 11:256; %FIXME
-tgtChannels = 11; %FIXME
+channel = 1:256; %FIXME
+tgtChannels = 1; %FIXME
 lobe = {'dummylobe'}; %FIXME
 
 for ich = 1:numel(tgtChannels)
