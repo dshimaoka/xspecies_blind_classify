@@ -26,7 +26,11 @@ switch species
             case '369'
                 data.expIDs = {'130' '135'};
                 data.state = {'awake','unconscious'};
-
+                data.age = nan; %FIXME
+                data.dose = [nan nan]; %FIXME
+                data.doseunit = ''; %FIXME
+                data.anesthetic = ''; %FIXME
+        
             case '376'
                 data.expIDs = {'139' '146'};
                 data.state = {'awake','unconscious'};

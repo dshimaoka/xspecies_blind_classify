@@ -1,3 +1,5 @@
+% created from preprocess_kirill.m 22/8/25
+
 %% Description
 
 %{
@@ -8,6 +10,7 @@ Line noise removal
 
 %}
 
+addpath(genpath('~/Documents/git/chronux_2_11'));
 
 %% Common parameters
 species = 'human';
@@ -27,7 +30,7 @@ dirPref = getpref('cosProject','dirPref');
 save_dir = fullfile(dirPref.rootDir, 'preprocessed',species,subject);
 load_dir = fullfile(dirPref.rawDir, 'Kirill Iowa Intracranial Data/Stage 2');
 
-if exist(save_dir,'dir')
+if ~exist(save_dir,'dir')
     mkdir(save_dir);
 end
 
@@ -65,6 +68,8 @@ for ich = 1:numel(tgtChannels)
 
         [dat, t, eventTimes, eventLabels] = loadOneChannel(fileName, thisCh,'LFPx');
 
+        save(fullfile(save_dir, [load_file(1:end-4) '_icond' num2str(icond) '.mat']), 'dat','t','eventLabels','eventTimes');
+        
         buttonPressCh = 1;
         [dat_btn, t_btn] = loadOneChannel(fileName, buttonPressCh,'Inpt');
 
@@ -94,10 +99,10 @@ for ich = 1:numel(tgtChannels)
     data_raw(:,:,1) = data_tmp{1}(:,1:minTrials);
     data_raw(:,:,2) = data_tmp{2}(:,1:minTrials);
 
-for icond = 1:2
-    [data_proc(:,:,icond), preprocess_string, powers_before(:,:,icond), powers_after(:,:,icond) , faxis_before, faxis_after] ...
-        = preprocessOneCh(data_raw, s_subtractMean, s_lineNoise);
-end
+    for icond = 1:2
+        [data_proc(:,:,icond), preprocess_string, powers_before(:,:,icond), powers_after(:,:,icond) , faxis_before, faxis_after] ...
+            = preprocessOneCh(data_raw(:,:,icond), params, s_subtractMean, s_lineNoise);
+    end
 
     %% Plot and check power spectra for each fly
     figure;
